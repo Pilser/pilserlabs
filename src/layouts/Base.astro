@@ -1,0 +1,60 @@
+---
+import '../styles/global.css';
+
+interface Props {
+  title?: string;
+  description?: string;
+  full?: boolean;
+}
+
+const {
+  title = 'PilserLabs',
+  description = 'PilserLabs hosts independent, self-contained experiments — each a fully autonomous frontend with its own theme, its own SEO, and direct access to the lab APIs.',
+  full = false,
+} = Astro.props;
+
+const year = new Date().getFullYear();
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{full ? title : `${title} · PilserLabs`}</title>
+    <meta name="description" content={description} />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href={'https://pilserlabs.com/'} />
+    <meta name="color-scheme" content="dark" />
+    <meta name="theme-color" content="#05070a" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="PilserLabs" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content="https://pilserlabs.com/" />
+    <meta name="twitter:card" content="summary_large_image" />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="width header-inner">
+        <a href="/" class="brand">
+          <span class="glyph">PL</span>
+          <span>Pilsér&nbsp;Labs</span>
+        </a>
+        <nav class="header-status">
+          <span class="status-line hide-sm"><i class="status-dot"></i>systems nominal</span>
+          <a href="/" class="hide-sm">feed</a>
+          <a href="/sitemap.xml">sitemap</a>
+          <a href="/admin">station</a>
+        </nav>
+      </div>
+    </header>
+
+    <slot />
+
+    <footer class="site-footer width">
+      <span>Pilsér Labs · hosting independent experiments · {year}</span>
+      <span class="ghost">every upload is a self-contained dist, directly wired into the lab APIs</span>
+    </footer>
+  </body>
+</html>

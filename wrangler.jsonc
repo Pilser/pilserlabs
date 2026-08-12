@@ -1,0 +1,23 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "pilserlabs",
+  "main": "@astrojs/cloudflare/entrypoints/server",
+  "compatibility_date": "2026-08-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS"
+  },
+  "vars": {
+    "SITE_URL": "https://pilserlabs.com"
+  },
+  "kv_namespaces": [
+    { "binding": "REGISTRY", "id": "a145880a2b164d54b304564bb9ee6ca4" }
+  ],
+  "r2_buckets": [
+    { "binding": "DISTS", "bucket_name": "pilserlabs-dists" }
+  ],
+  "d1_databases": [
+    { "binding": "DB", "database_name": "pilserlabs-d1", "database_id": "87ce463d-3d29-4a9a-b698-e61c540bb957" }
+  ]
+}

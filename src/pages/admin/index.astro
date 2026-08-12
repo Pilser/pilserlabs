@@ -1,0 +1,409 @@
+---
+import Base from '../../layouts/Base.astro';
+import { BTN_DESIGNS } from '../../lib/types';
+---
+
+<Base
+  full
+  title="Registration Station"
+  description="The PilserLabs registration station — upload dists, register their SEO and theme."
+>
+  <main class="station width">
+    <h2 style="margin-bottom:28px">
+      <span class="mono-label ">station&nbsp;/&nbsp;registrar</span>
+    </h2>
+
+    <div id="gate" class="login-box terminal" hidden>
+      <div class="tbar">
+        <i class="dot" style="background:#ff5f56"></i>
+        <i class="dot" style="background:#ffbd2e"></i>
+        <i class="dot" style="background:#27c93f"></i>
+        <span class="tlabel">ACCESS GATE</span>
+      </div>
+      <div class="tbody">
+        <p style="color:var(--ink-dim);font-size:13px;margin-top:0">
+          The registrar is admin-gated. Enter the lab access code.
+        </p>
+        <div class="field">
+          <label for="pw">access code</label>
+          <input type="password" id="pw" autocomplete="current-password" />
+        </div>
+        <button class="btn btn-volt" id="unlock">unlock</button>
+        <div id="gateErr" class="notice err" hidden style="margin-top:16px"></div>
+      </div>
+    </div>
+
+    <div id="console" class="console" hidden>
+      <div class="notice">
+        <i class="status-dot"></i>Console armed. Recent entries show below —
+        select an entry to <b>update</b> its dist + SEO, or <b>retire</b> it.
+      </div>
+
+      <div class="terminal">
+        <div class="tbar">
+          <i class="dot" style="background:#ff5f56"></i>
+          <i class="dot" style="background:#ffbd2e"></i>
+          <i class="dot" style="background:#27c93f"></i>
+          <span class="tlabel">REGISTER · UPDATE DIST</span>
+        </div>
+        <div class="tbody">
+          <form id="regForm" enctype="multipart/form-data">
+            <div class="field">
+              <label for="f_file">dist archive (.zip of built html/css/js)</label>
+              <div class="dropzone" id="dz" role="button" tabindex="0">
+                <span id="dzLabel">drop the dist zip here, or click to browse</span>
+                <input type="file" id="f_file" accept=".zip,application/zip" hidden />
+              </div>
+              <div id="themePreview" class="swatches" hidden></div>
+            </div>
+
+            <div class="field-row">
+              <div class="field">
+                <label for="f_slug">slug (url path) — lowercase, 2-49</label>
+                <input type="text" id="f_slug" pattern="[a-z0-9](?:[a-z0-9-]{0,47})" />
+              </div>
+              <div class="field">
+                <label for="f_status">status</label>
+                <select id="f_status">
+                  <option value="live">live</option>
+                  <option value="draft">draft (hidden from feed)</option>
+                  <option value="archived">archived</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="field">
+              <label for="f_title">banner heading</label>
+              <input type="text" id="f_title" />
+            </div>
+            <div class="field">
+              <label for="f_desc">short description (shown on the feed card)</label>
+              <textarea id="f_desc"></textarea>
+            </div>
+            <div class="field">
+              <label for="f_tags">tags (comma separated)</label>
+              <input type="text" id="f_tags" placeholder="research, interactive, hand-built" />
+            </div>
+
+            <div class="field-row">
+              <div class="field">
+                <label for="f_btnLabel">enter-button label</label>
+                <input type="text" id="f_btnLabel" placeholder="open experiment" />
+              </div>
+              <div class="field">
+                <label for="f_btnDesign">enter-button design</label>
+                <select id="f_btnDesign">
+                  {BTN_DESIGNS.map((d) => <option value={d}>{d}</option>)}
+                </select>
+              </div>
+            </div>
+
+            <div class="field">
+              <label for="f_theme">theme override (optional JSON array of hex colors)</label>
+              <textarea class="code" id="f_theme" placeholder='["#c9ff3d","#3af5c4","#0a0f16"]'></textarea>
+              <small style="color:var(--ink-faint);font-size:11px">
+                leave empty to auto-extract from the dist CSS.
+              </small>
+            </div>
+
+            <div class="field-row">
+              <div class="field">
+                <label for="f_seoTitle">seo · title</label>
+                <input type="text" id="f_seoTitle" />
+              </div>
+              <div class="field">
+                <label for="f_seoKeywords">seo · keywords</label>
+                <input type="text" id="f_seoKeywords" />
+              </div>
+            </div>
+            <div class="field">
+              <label for="f_seoDesc">seo · description</label>
+              <textarea id="f_seoDesc"></textarea>
+            </div>
+            <div class="field-row">
+              <div class="field">
+                <label for="f_og">og / banner image (optional)</label>
+                <input type="file" id="f_og" accept="image/*" />
+              </div>
+              <div class="field">
+                <span class="mono-label" style="margin-bottom:8px">indexing</span>
+                <label class="check">
+                  <input type="checkbox" id="f_seoIndex" checked />
+                  allow search engines to index this page
+                </label>
+              </div>
+            </div>
+
+            <div class="form-actions">
+              <button type="submit" class="btn btn-volt" id="submitBtn">register / update</button>
+              <button type="button" class="btn btn-soft" id="resetBtn">clear form</button>
+            </div>
+            <div id="formState" class="notice" style="margin-top:18px" hidden></div>
+          </form>
+        </div>
+      </div>
+
+      <div class="terminal" style="margin-top:26px">
+        <div class="tbar">
+          <i class="dot" style="background:#ff5f56"></i>
+          <i class="dot" style="background:#ffbd2e"></i>
+          <i class="dot" style="background:#27c93f"></i>
+          <span class="tlabel">REGISTRY</span>
+        </div>
+        <div class="tbody">
+          <div class="entry-list" id="entries"></div>
+          <div id="listState" class="notice" hidden></div>
+        </div>
+      </div>
+    </div>
+  </main>
+</Base>
+
+<script>
+  const api = async (url: string, init?: RequestInit): Promise<{ ok: boolean; status: number; data: any }> => {
+    const res = await fetch(url, init);
+    let data = null;
+    try {
+      data = await res.json();
+    } catch {
+      /* noop */
+    }
+    return { ok: res.ok, status: res.status, data };
+  };
+
+  const byId = (id: string): any => document.getElementById(id);
+  const show = (id: string, on: boolean) => {
+    byId(id).hidden = !on;
+  };
+
+  const state = (msg: string, isErr = false) => {
+    const el = byId('formState');
+    el.hidden = false;
+    el.textContent = msg;
+    el.classList.toggle('err', isErr);
+  };
+
+  const listState = (msg: string, isErr = false) => {
+    const el = byId('listState');
+    el.hidden = false;
+    el.textContent = msg;
+    el.classList.toggle('err', isErr);
+  };
+
+  const esc = (s: string) =>
+    s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]!));
+
+  async function bootstrap() {
+    const a = await api('/api/auth');
+    show('gate', !a.data?.admin);
+    show('console', a.data?.admin === true);
+    if (a.data?.admin) {
+      loadEntries();
+    }
+  }
+
+  async function login() {
+    const pw = (byId('pw') as HTMLInputElement).value;
+    const r = await api('/api/auth', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ action: 'login', password: pw }),
+    });
+    if (!r.ok) {
+      const e = byId('gateErr');
+      e.hidden = false;
+      e.textContent = r.data?.error ?? 'access denied';
+      return;
+    }
+    show('gate', false);
+    show('console', true);
+    loadEntries();
+  }
+
+  function loadEntries() {
+    api('/api/dists?action=feed').then((r) => {
+      const list = byId('entries');
+      list.innerHTML = '';
+      if (!r.ok || !r.data?.feed?.length) {
+        listState('Registry is empty — mount the first experiment.');
+        return;
+      }
+      listState('', false);
+      listState('', true);
+
+      (r.data.feed as any[]).forEach((e: any) => {
+        const row = document.createElement('div');
+        row.className = 'entry-row';
+        const colors = (e.theme?.colors ?? []).map(
+          (c: string) => `<i style="background:${c}"></i>`,
+        ).join('');
+        row.innerHTML = `
+          <div class="meta">
+            <div class="swatch">${colors}</div>
+            <div>
+              <div class="name">${esc(e.title)}</div>
+              <div class="slug">/p/${esc(e.slug)}/ · ${esc(e.status)}</div>
+            </div>
+          </div>
+          <div class="ops">
+            <button class="btn btn-soft" data-open="/p/${esc(e.slug)}/">open</button>
+            <button class="btn btn-soft" data-edit="${esc(e.slug)}">update</button>
+            <button class="btn btn-danger" data-del="${esc(e.slug)}">retire</button>
+          </div>`;
+        row.querySelector('[data-open]')!.addEventListener('click', () => {
+          window.open(row.querySelector('[data-open]')!.getAttribute('data-open')!, '_blank');
+        });
+        row.querySelector('[data-edit]')!.addEventListener('click', () => fillForm(e.slug));
+        row.querySelector('[data-del]')!.addEventListener('click', () => removeEntry(e.slug, e.title));
+        list.appendChild(row);
+      });
+    });
+  }
+
+  async function fillForm(slug: string) {
+    const r = await api(`/api/dists?slug=${encodeURIComponent(slug)}`);
+    if (!r.ok || !r.data?.entry) return;
+    const e = r.data.entry;
+    (byId('f_slug') as HTMLInputElement).value = e.slug;
+    (byId('f_title') as HTMLInputElement).value = e.title;
+    (byId('f_desc') as HTMLTextAreaElement).value = e.description;
+    (byId('f_tags') as HTMLInputElement).value = (e.tags ?? []).join(', ');
+    (byId('f_btnLabel') as HTMLInputElement).value = e.button?.label ?? '';
+    (byId('f_btnDesign') as HTMLSelectElement).value = e.button?.design ?? 'minimal';
+    (byId('f_status') as HTMLSelectElement).value = e.status ?? 'live';
+    (byId('f_theme') as HTMLTextAreaElement).value = JSON.stringify(e.theme?.colors ?? []);
+    (byId('f_seoTitle') as HTMLInputElement).value = e.seo?.title ?? '';
+    (byId('f_seoDesc') as HTMLTextAreaElement).value = e.seo?.description ?? '';
+    (byId('f_seoKeywords') as HTMLInputElement).value = e.seo?.keywords ?? '';
+    (byId('f_seoIndex') as HTMLInputElement).checked = e.seo?.robotsIndex !== false;
+    (byId('f_file') as HTMLInputElement).value = '';
+    (byId('f_og') as HTMLInputElement).value = '';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  async function removeEntry(slug: string, title: string) {
+    if (!confirm(`Retire "${title}" (/p/${slug}/)? The dist and SEO will be removed.`)) return;
+    const r = await fetch('/api/dists', {
+      method: 'DELETE',
+      headers: { 'content-type': 'application/x-www-form-urlencoded' },
+      body: `slug=${encodeURIComponent(slug)}`,
+    });
+    if (r.ok) loadEntries();
+    else state('retire failed', true);
+  }
+
+  function themePreview(themeColors: string[]) {
+    const box = byId('themePreview');
+    box.hidden = themeColors.length === 0;
+    box.innerHTML = themeColors
+      .map(
+        (c) =>
+          `<i style="background:${/^#[0-9a-f]{6}$/i.test(c) ? c : '#999'}"></i>`,
+      )
+      .join('');
+  }
+
+  function setupDrag() {
+    const dz = byId('dz');
+    const file = byId('f_file') as HTMLInputElement;
+    dz.addEventListener('click', () => file.click());
+    dz.addEventListener('keydown', (ev: KeyboardEvent) => {
+      if (ev.key === 'Enter' || ev.key === ' ') file.click();
+    });
+    ['dragenter', 'dragover'].forEach((ev: string) =>
+      dz.addEventListener(ev, (e: DragEvent) => {
+        e.preventDefault();
+        dz.classList.add('drag');
+      }),
+    );
+    ['dragleave', 'drop'].forEach((ev: string) =>
+      dz.addEventListener(ev, (e: DragEvent) => {
+        e.preventDefault();
+        dz.classList.remove('drag');
+      }),
+    );
+    dz.addEventListener('drop', (e: DragEvent) => {
+      const dt = e.dataTransfer;
+      if (dt?.files.length) file.files = dt.files;
+      fileLabel();
+    });
+    file.addEventListener('change', fileLabel);
+    function fileLabel() {
+      const f = file.files?.[0];
+      byId('dzLabel').textContent = f
+        ? `${f.name} (${Math.round(f.size / 1024)}KB) — ready`
+        : 'drop the dist zip here, or click to browse';
+      tryThemePreview();
+    }
+    async function tryThemePreview() {
+      const f = file.files?.[0];
+      if (!f) return;
+      if (!f.name.endsWith('.zip')) return;
+      let parsed: string[] | null = null;
+      try {
+        const txt = (byId('f_theme') as HTMLTextAreaElement).value.trim();
+        if (txt) parsed = JSON.parse(txt);
+      } catch {
+        /* noop */
+      }
+      if (parsed?.length) themePreview(parsed);
+      else themePreview([]);
+    }
+    (byId('f_theme') as HTMLTextAreaElement).addEventListener('input', () => {
+      try {
+        const a = JSON.parse((byId('f_theme') as HTMLTextAreaElement).value);
+        if (Array.isArray(a)) themePreview(a);
+      } catch {
+        themePreview([]);
+      }
+    });
+  }
+
+  function bindForm() {
+    (byId('regForm') as HTMLFormElement).addEventListener('submit', async (ev) => {
+      ev.preventDefault();
+      const fd = new FormData(byId('regForm') as HTMLFormElement);
+      const file = (byId('f_file') as HTMLInputElement).files?.[0];
+      if (!file) {
+        state('choose a dist zip first', true);
+        return;
+      }
+      const og = (byId('f_og') as HTMLInputElement).files?.[0];
+      const themeRaw = (byId('f_theme') as HTMLTextAreaElement).value.trim();
+      fd.set('file', file);
+      if (og) fd.set('ogImage', og);
+      if (themeRaw) fd.set('themeColors', themeRaw);
+      fd.set('seoIndex', (byId('f_seoIndex') as HTMLInputElement).checked ? 'true' : 'false');
+      fd.set('tags', (byId('f_tags') as HTMLInputElement).value);
+      (byId('submitBtn') as HTMLButtonElement).disabled = true;
+
+      const res = await fetch('/api/dists', {
+        method: 'POST',
+        credentials: 'include',
+        body: fd,
+      });
+      (byId('submitBtn') as HTMLButtonElement).disabled = false;
+      const data: any = await res.json().catch(() => null);
+      if (res.ok) {
+        state(`mounted /p/${data?.entry?.slug}/ — ${res.status === 201 ? 'registered' : 'updated'} (${file.name}).`);
+        loadEntries();
+      } else {
+        state(data?.error ?? 'registration failed', true);
+      }
+    });
+    (byId('resetBtn') as HTMLButtonElement).addEventListener('click', () => {
+      (byId('regForm') as HTMLFormElement).reset();
+      state('form cleared', false);
+      byId('formState').hidden = true;
+      themePreview([]);
+    });
+  }
+
+  (byId('pw') as HTMLInputElement).addEventListener('keydown', (ev) => {
+    if (ev.key === 'Enter') login();
+  });
+  byId('unlock').addEventListener('click', login);
+  bindForm();
+  setupDrag();
+  bootstrap();
+</script>
