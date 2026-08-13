@@ -274,8 +274,12 @@ async function main() {
   const schemaPath = join(ROOT, 'd1/schema.sql');
   if (existsSync(schemaPath)) {
     const sql = readFileSync(schemaPath, 'utf8');
-    const dq = await api(`/accounts/${ACCOUNT}/d1/database/${D1_ID}/query`, { method: 'POST', body: { sql } });
-    console.log('  schema applied:', dq.result ? 'ok' : JSON.stringify(dq).slice(0, 200));
+    try {
+      const dq = await api(`/accounts/${ACCOUNT}/d1/database/${D1_ID}/query`, { method: 'POST', body: { sql } });
+      console.log('  schema applied:', dq.result ? 'ok' : JSON.stringify(dq).slice(0, 200));
+    } catch (err) {
+      console.log('  schema skipped (non-fatal):', err.message.slice(0, 200));
+    }
   }
 
   console.log('== custom domains ==');

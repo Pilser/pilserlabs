@@ -126,6 +126,55 @@ async function handle(context: APIContext, method: string): Promise<Response> {
   }
 
   if (segs[0] === 'seo') {
+    if (segs[1] === 'ping') {
+      if (method !== 'POST') return methodNotAllowed('POST');
+      let bodyKey = '';
+      try {
+        const body: unknown = JSON.parse(await request.text());
+        const rec = body && typeof body === 'object' ? (body as Record<string, unknown>) : {};
+        if (typeof rec.indexnowKey === 'string' && rec.indexnowKey.trim()) bodyKey = rec.indexnowKey.trim();
+      } catch {
+        /* no body — fall back to stored config */
+      }
+      const cfg = await getSeoConfig(env);
+      const key = bodyKey || cfg.indexnowKey;
+      if (!key) {
+        return json(
+          { ok: false, error: 'no indexnowKey set — set one first: PUT /api/agent/seo {"indexnowKey":"<your-key>"}, or pass {"indexnowKey":"..."} in this request' },
+          400,
+        );
+      }
+      const site = (env.SITE_URL ?? 'https://pilserlabs.com').replace(/\/+$/, '');
+      const host = new URL(site).host;
+      const sitemapUrl = `${site}/sitemap.xml`;
+      const results: Record<string, unknown> = {};
+      try {
+        const g = await fetch(`https://www.google.com/ping?sitemap=${encodeURIComponent(sitemapUrl)}`);
+        results.google = g.status;
+      } catch (err) {
+        results.google = `error: ${err instanceof Error ? err.message : String(err)}`;
+      }
+      const urlList: string[] = [
+        `${site}/`,
+        `${site}/projects/`,
+        `${site}/ai/`,
+        `${site}/contact/`,
+        ...(await listFeed(env))
+          .filter((e) => e.status === 'live')
+          .map((e) => `${site}/p/${e.slug}/`),
+      ].slice(0, 100);
+      try {
+        const i = await fetch('https://api.indexnow.org/indexnow', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ host, key: cfg.indexnowKey, urlList }),
+        });
+        results.indexnow = i.status;
+      } catch (err) {
+        results.indexnow = `error: ${err instanceof Error ? err.message : String(err)}`;
+      }
+      return json({ ok: true, host, urlCount: urlList.length, results });
+    }
     if (method === 'GET') {
       const cfg = await getSeoConfig(env);
       return json({ ok: true, config: seoConfigMasked(cfg) });

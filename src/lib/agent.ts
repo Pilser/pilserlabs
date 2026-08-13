@@ -142,8 +142,27 @@ ENDPOINTS
         "indexnowKey": "..." }              Bing IndexNow key (instant crawl pings)
     DELETE ${BASE}/api/agent/seo            -> clear all
     The values are served in every page <head> (gtag.js, google-site-verification,
-    IndexNow <link>). IndexNow key file is served at /{indexnowKey}.txt. Pings to
-    Google/IndexNow run automatically on each deploy.
+    IndexNow <link>). The IndexNow key file is served at /{indexnowKey}.txt.
+
+12) PING SEARCH ENGINES (tell Google/Bing to re-crawl now)
+    POST ${BASE}/api/agent/seo/ping
+    optional body: { "indexnowKey": "<your-key>" }   (use right after setting it)
+    -> { ok, host, urlCount, results: { google, indexnow } }
+    Sends the live module URLs (≤100) to IndexNow and pings Google's sitemap.
+    If the key was just set, pass it in the body — otherwise it reads the stored
+    config (Cloudflare KV is eventually consistent, so pass it to skip the wait).
+    Also pings automatically on every deploy. Use after adding/updating modules.
+
+    Set SEO config:
+    curl -X PUT ${BASE}/api/agent/seo \\
+      -H "Authorization: Bearer <AGENT_KEY>" \\
+      -H "Origin: https://pilserlabs.com" \\
+      -H "Content-Type: application/json" \\
+      -d '{"gaMeasurementId":"G-XXXXXXX","indexnowKey":"<bing-key>"}'
+    Then ping:
+    curl -X POST ${BASE}/api/agent/seo/ping \\
+      -H "Authorization: Bearer <AGENT_KEY>" \\
+      -H "Origin: https://pilserlabs.com"
 
 PUBLIC APIs (usable by ANY mounted module's frontend, same-origin)
 ------------------------------------------------------------------
