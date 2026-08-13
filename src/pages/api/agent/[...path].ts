@@ -9,6 +9,7 @@ import { extractThemeFromCss } from '../../../lib/theme';
 import { buildAgentGuide, extractAgentKey, isAgentKey } from '../../../lib/agent';
 import { getMailConfig, setMailConfig, clearMailConfig } from '../../../lib/mailer';
 import type { MailConfig } from '../../../lib/mailer';
+import { getSeoConfig, setSeoConfig, clearSeoConfig, seoConfigMasked } from '../../../lib/seo-config';
 import { deployPluginWorker, deletePluginWorker } from '../../../lib/plugin';
 import type { RegistryEntry } from '../../../lib/types';
 
@@ -120,6 +121,32 @@ async function handle(context: APIContext, method: string): Promise<Response> {
     if (method === 'DELETE') {
       await clearMailConfig(env);
       return json({ ok: true, configured: false });
+    }
+    return methodNotAllowed('GET, PUT, DELETE');
+  }
+
+  if (segs[0] === 'seo') {
+    if (method === 'GET') {
+      const cfg = await getSeoConfig(env);
+      return json({ ok: true, config: seoConfigMasked(cfg) });
+    }
+    if (method === 'PUT' || method === 'POST') {
+      let body: Record<string, unknown>;
+      try {
+        body = JSON.parse(await request.text());
+      } catch {
+        return json({ ok: false, error: 'Invalid JSON' }, 400);
+      }
+      const patch: Partial<import('../../../lib/seo-config').SeoConfig> = {};
+      for (const k of ['gaMeasurementId', 'gscVerification', 'indexnowKey'] as const) {
+        if (typeof body[k] === 'string') patch[k] = body[k];
+      }
+      const cfg = await setSeoConfig(env, patch);
+      return json({ ok: true, config: seoConfigMasked(cfg) });
+    }
+    if (method === 'DELETE') {
+      await clearSeoConfig(env);
+      return json({ ok: true, config: seoConfigMasked(await getSeoConfig(env)) });
     }
     return methodNotAllowed('GET, PUT, DELETE');
   }

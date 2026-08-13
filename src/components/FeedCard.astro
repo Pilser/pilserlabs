@@ -52,6 +52,9 @@ const expId = String(entry.createdAt % 100000).padStart(6, '0');
     class={`btn btn-design-${entry.button.design} stretch`}
     href={`/view/${slug}/`}
     aria-label={`Open ${entry.title}`}
+    data-track="module_open"
+    data-track-label={entry.title}
+    data-track-id={slug}
   >
     {entry.button.label}
   </a>

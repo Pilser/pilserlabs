@@ -5,7 +5,25 @@ import site from '../../data/pilseros.json';
 const c = site.contact;
 ---
 
-<Base title={c.title} description={c.sub} activeTab="contact">
+<Base
+  title={c.title}
+  description={c.sub}
+  activeTab="contact"
+  canonical="https://pilserlabs.com/contact/"
+  jsonLd={[
+    {
+      '@type': 'ContactPage',
+      name: c.title,
+      description: c.sub,
+      url: 'https://pilserlabs.com/contact/',
+    },
+    {
+      '@type': 'Organization',
+      name: 'PilserLabs',
+      url: 'https://pilserlabs.com/',
+    },
+  ]}
+>
   <main class="width" style="padding-block:44px 90px">
     <div class="hero-inner" style="padding-bottom:0">
       <div>
@@ -20,7 +38,7 @@ const c = site.contact;
         </h1>
         <p class="sub" set:html={c.sub}></p>
         <div class="spec" style="margin-top:24px;display:grid;gap:8px">
-          <span><b>direct line</b> — <a class="accent" href={`mailto:${c.email}`}>{c.email}</a></span>
+          <span><b>direct line</b> — <a class="accent" href={`mailto:${c.email}`} data-track="contact_email" data-track-label={c.email}>{c.email}</a></span>
           <span><b>channel</b> — {c.channel}</span>
           <span><b>turnaround</b> — {c.turnaround}</span>
         </div>

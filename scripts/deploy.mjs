@@ -291,6 +291,39 @@ async function main() {
     }
   }
 
+  console.log('== seo pings ==');
+  try {
+    const raw = await api(`/accounts/${ACCOUNT}/storage/kv/namespaces/${KV_REGISTRY_ID}/values/seo-config`);
+    let cfg = {};
+    if (typeof raw === 'string') {
+      try {
+        cfg = JSON.parse(raw);
+      } catch {
+        cfg = {};
+      }
+    }
+    const siteUrl = 'https://pilserlabs.com';
+    const sitemapUrl = `${siteUrl}/sitemap.xml`;
+    if (!cfg?.indexnowKey) {
+      console.log('  no IndexNow key configured — skipping search pings');
+    } else {
+      console.log('  pinging Google with sitemap…');
+      fetch(`https://www.google.com/ping?sitemap=${encodeURIComponent(sitemapUrl)}`)
+        .then((r) => console.log(`  google ping -> ${r.status}`))
+        .catch((e) => console.log('  google ping failed:', e.message));
+      console.log('  pinging IndexNow…');
+      const urls = [`${siteUrl}/`, `${siteUrl}/projects/`, `${siteUrl}/ai/`, `${siteUrl}/contact/`];
+      const res = await fetch('https://api.indexnow.org/indexnow', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ host: 'pilserlabs.com', key: cfg.indexnowKey, urlList: urls }),
+      });
+      console.log(`  indexnow ping -> ${res.status}`);
+    }
+  } catch (err) {
+    console.log('  seo ping skipped:', err.message.slice(0, 200));
+  }
+
   console.log('== done ==');
 }
 

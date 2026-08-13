@@ -1,6 +1,8 @@
 ---
 import '../styles/global.css';
 import site from '../data/pilseros.json';
+import { useEnv } from '../lib/env';
+import { getSeoConfig } from '../lib/seo-config';
 
 interface Props {
   title?: string;
@@ -9,6 +11,8 @@ interface Props {
   activeTab?: string;
   noindex?: boolean;
   canonical?: string;
+  ogImage?: string;
+  jsonLd?: object | object[] | false;
 }
 
 const {
@@ -18,12 +22,44 @@ const {
   activeTab = 'feed',
   noindex = false,
   canonical = site.meta.canonical,
+  ogImage,
+  jsonLd,
 } = Astro.props;
+
+const env = useEnv();
+const seoConfig = await getSeoConfig(env);
+const gaId = seoConfig.gaMeasurementId || '';
 
 const year = new Date().getFullYear();
 
 const tabs = site.tabs;
 const tabPath = 'M14 1.5 H106 L118.5 12 V24 L106 34.5 H14 L1.5 24 V12 Z';
+
+const siteName = site.meta.siteName;
+const displayTitle = full || title.includes(siteName) ? title : `${title} · ${siteName}`;
+const origin = (site.meta.canonical || 'https://pilserlabs.com/').replace(/\/+$/, '');
+const defaultOgImage = site.meta.ogImage
+  ? (/^https?:\/\//i.test(site.meta.ogImage) ? site.meta.ogImage : `${origin}${site.meta.ogImage.startsWith('/') ? site.meta.ogImage : '/' + site.meta.ogImage}`)
+  : `${origin}/favicon.svg`;
+const fullOgImage = ogImage ? (/^https?:\/\//i.test(ogImage) ? ogImage : `${origin}${ogImage.startsWith('/') ? ogImage : '/' + ogImage}`) : defaultOgImage;
+
+const defaultJsonLd = [
+  {
+    '@type': 'Organization',
+    name: siteName,
+    url: `${origin}/`,
+    logo: `${origin}/favicon.svg`,
+  },
+  {
+    '@type': 'WebSite',
+    name: siteName,
+    url: `${origin}/`,
+  },
+];
+const renderedJsonLd = jsonLd === false ? null : Array.isArray(jsonLd) ? jsonLd : [jsonLd ?? defaultJsonLd[0]];
+const jsonLdMarkup = renderedJsonLd
+  ? JSON.stringify({ '@context': 'https://schema.org', '@graph': renderedJsonLd })
+  : null;
 ---
 
 <!doctype html>
@@ -31,18 +67,37 @@ const tabPath = 'M14 1.5 H106 L118.5 12 V24 L106 34.5 H14 L1.5 24 V12 Z';
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>{full ? title : `${title} · ${site.meta.siteName}`}</title>
+    <title>{displayTitle}</title>
     <meta name="description" content={description} />
-    <meta name="robots" content={noindex ? 'noindex, nofollow' : 'index, follow'} />
+    <meta name="robots" content={noindex ? 'noindex, nofollow' : 'index, follow, max-image-preview:large'} />
     <link rel="canonical" href={canonical} />
+    <link rel="alternate" href={canonical} hreflang="x-default" />
+    <link rel="icon" type="image/svg+xml" href={`${origin}/favicon.svg`} />
     <meta name="color-scheme" content="dark" />
     <meta name="theme-color" content="#03050b" />
+    {seoConfig.gscVerification && <meta name="google-site-verification" content={seoConfig.gscVerification} />}
+    {seoConfig.indexnowKey && <link rel="indexnow" href={`${origin}/${seoConfig.indexnowKey}.txt`} />}
     <meta property="og:type" content="website" />
-    <meta property="og:site_name" content={site.meta.siteName} />
-    <meta property="og:title" content={title} />
+    <meta property="og:site_name" content={siteName} />
+    <meta property="og:title" content={displayTitle} />
     <meta property="og:description" content={description} />
-    <meta property="og:url" content={site.meta.canonical} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={fullOgImage} />
+    <meta property="og:image:alt" content={displayTitle} />
+    <meta property="og:locale" content="en_US" />
     <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={displayTitle} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={fullOgImage} />
+    {gaId && (
+      <>
+        <script is:inline async src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`}></script>
+        <script is:inline set:html={`window.dataLayer = window.dataLayer || []; function gtag(){dataLayer.push(arguments);} gtag('js', new Date()); gtag('config', '${gaId}');`}></script>
+      </>
+    )}
+    {jsonLdMarkup && (
+      <script is:inline type="application/ld+json" set:html={jsonLdMarkup} />
+    )}
   </head>
   <body>
     <header class="site-header">
@@ -104,5 +159,18 @@ const tabPath = 'M14 1.5 H106 L118.5 12 V24 L106 34.5 H14 L1.5 24 V12 Z';
         </span>
       </div>
     </footer>
+
+    {gaId && (
+      <script is:inline set:html={`
+        document.addEventListener('click', function (e) {
+          var el = e.target.closest('[data-track]');
+          if (!el) return;
+          var action = el.getAttribute('data-track');
+          var label = el.getAttribute('data-track-label') || '';
+          var id = el.getAttribute('data-track-id') || '';
+          if (typeof gtag !== 'undefined') gtag('event', action, { event_label: label, event_id: id });
+        });
+      `}></script>
+    )}
   </body>
 </html>

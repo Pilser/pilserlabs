@@ -3,7 +3,8 @@
     "siteName": "PilserLabs",
     "defaultTitle": "PilserLabs — AI Agents · Serverless · Distributed Systems",
     "description": "PilserLabs is an IT engineering lab. We build AI agents and LLM infrastructure, serverless and distributed architectures that scale horizontally and vertically, resilient networks and distributed file systems — and open software (Rust crates) that powers it. Research-driven engineering solving real-world problems through STEM.",
-    "canonical": "https://pilserlabs.com/"
+    "canonical": "https://pilserlabs.com/",
+    "ogImage": "/favicon.svg"
   },
   "titlebar": {
     "brandName": "Pilsér",

@@ -8,9 +8,11 @@ const s = site.station;
 
 <Base
   full
+  noindex
   title="Registration Station"
   description="The PilserLabs control master — manage every module, banner, SEO and theme, and arm the lab agent."
   activeTab="station"
+  canonical="https://pilserlabs.com/admin"
 >
   <main class="station width">
     <h2 style="margin-bottom:28px">
@@ -157,6 +159,47 @@ const s = site.station;
             <button class="btn btn-volt" type="button" id="mSave">save config</button>
             <button class="btn btn-danger" type="button" id="mClear">disable / clear</button>
             <span class="mono-label" id="mStatus" style="align-self:center"></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="terminal">
+        <div class="tbar">
+          <i class="dot" style="background:#3ee0ff"></i>
+          <i class="dot" style="background:#00d9ff"></i>
+          <i class="dot" style="background:#ffc24b"></i>
+          <span class="tlabel">SEO // ANALYTICS</span>
+        </div>
+        <div class="tbody">
+          <p style="color:var(--ink-dim);font-size:13px;margin-top:0;max-width:760px">
+            Site-wide search + analytics tags, injected into every page
+            <span class="accent">&lt;head&gt;</span> (and mounted module pages) and editable by
+            the lab agent via <span class="accent">/api/agent/seo</span>. Values here are public
+            by design (a GA stream ID is not a secret) and served live — no redeploy needed.
+          </p>
+          <div class="field-row">
+            <div class="field">
+              <label for="s_ga">GA4 measurement id</label>
+              <input type="text" id="s_ga" placeholder="G-XXXXXXX" />
+            </div>
+            <div class="field">
+              <label for="s_gsc">google site verification</label>
+              <input type="text" id="s_gsc" placeholder="verification token" />
+            </div>
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label for="s_indexnow">indexnow key</label>
+              <input type="text" id="s_indexnow" placeholder="Bing Webmaster Tools key" />
+            </div>
+            <div class="field">
+              <label>&nbsp;</label>
+              <div class="form-actions" style="margin-top:0">
+                <button class="btn btn-volt" type="button" id="sSave">save seo</button>
+                <button class="btn btn-danger" type="button" id="sClear">clear</button>
+                <span class="mono-label" id="sStatus" style="align-self:center"></span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -490,6 +533,7 @@ const s = site.station;
       byId('agentKey').value = AGENT.key;
       loadInbox();
       loadMailConfig();
+      loadSeo();
       loadEntries();
     }
   }
@@ -517,6 +561,7 @@ const s = site.station;
     AGENT.key = ag.data?.agentKey ?? '';
     loadInbox();
     loadMailConfig();
+    loadSeo();
     loadInbox();
     byId('agentKey').value = AGENT.key;
     loadEntries();
@@ -818,6 +863,49 @@ const s = site.station;
     });
   }
 
+  async function loadSeo() {
+    const r = await api('/api/seo-config');
+    if (!r.ok || !r.data?.config) {
+      byId('sStatus').textContent = 'no seo config — analytics off';
+      byId('sStatus').style.color = 'var(--ink-dim)';
+      return;
+    }
+    const c = r.data.config;
+    byId('s_ga').value = c.gaMeasurementId || '';
+    byId('s_gsc').value = c.gscVerification || '';
+    byId('s_indexnow').value = c.indexnowKey || '';
+    const parts = [c.gaMeasurementId && 'GA', c.gscVerification && 'GSC', c.indexnowKey && 'IndexNow'].filter(Boolean);
+    byId('sStatus').textContent = parts.length ? `active · ${parts.join(' · ')}` : 'no seo config — analytics off';
+    byId('sStatus').style.color = parts.length ? 'var(--neon)' : 'var(--ink-dim)';
+  }
+
+  function bindSeo() {
+    const save = async () => {
+      const res = await fetch('/api/seo-config', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          gaMeasurementId: byId('s_ga').value.trim(),
+          gscVerification: byId('s_gsc').value.trim(),
+          indexnowKey: byId('s_indexnow').value.trim(),
+        }),
+      });
+      const data: any = await res.json().catch(() => null);
+      byId('sStatus').textContent = res.ok ? 'saved' : (data?.error ?? 'save failed');
+      byId('sStatus').style.color = res.ok ? 'var(--neon)' : 'var(--rose)';
+      if (res.ok) loadSeo();
+    };
+    byId('sSave').addEventListener('click', save);
+    byId('sClear').addEventListener('click', async () => {
+      const res = await fetch('/api/seo-config', { method: 'DELETE', credentials: 'include' });
+      byId('sStatus').textContent = res.ok ? 'cleared' : 'clear failed';
+      byId('sStatus').style.color = res.ok ? 'var(--ink-dim)' : 'var(--rose)';
+      if (res.ok) loadSeo();
+    });
+    loadSeo();
+  }
+
   let backendTarget = '';
 
   function uploadBackend(slug: string) {
@@ -909,6 +997,7 @@ const s = site.station;
   });
   byId('unlock').addEventListener('click', login);
   bindMail();
+  bindSeo();
   bindBackendInput();
   bindForm();
   setupDrag();

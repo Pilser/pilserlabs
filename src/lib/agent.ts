@@ -134,6 +134,17 @@ ENDPOINTS
       optional: "fromEmail", "toEmail" (destination override)
     Contact-form and /api/email sends use this server; statuses are logged.
 
+11) SEO / ANALYTICS CONFIG (site-wide head tags)
+    GET  ${BASE}/api/agent/seo              -> current config
+    PUT  ${BASE}/api/agent/seo              -> set any of these (JSON):
+      { "gaMeasurementId": "G-XXXXXXX",     Google Analytics 4 stream ID
+        "gscVerification": "...",           Google Search Console verification token
+        "indexnowKey": "..." }              Bing IndexNow key (instant crawl pings)
+    DELETE ${BASE}/api/agent/seo            -> clear all
+    The values are served in every page <head> (gtag.js, google-site-verification,
+    IndexNow <link>). IndexNow key file is served at /{indexnowKey}.txt. Pings to
+    Google/IndexNow run automatically on each deploy.
+
 PUBLIC APIs (usable by ANY mounted module's frontend, same-origin)
 ------------------------------------------------------------------
 - POST ${BASE}/api/email   { to, subject, text, html } (+ header x-plugin: slug)

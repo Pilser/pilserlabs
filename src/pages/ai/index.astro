@@ -6,7 +6,19 @@ import site from '../../data/pilseros.json';
 const a = site.ai;
 ---
 
-<Base title={a.title} description={a.sub} activeTab="ai">
+<Base
+  title={a.title}
+  description={a.sub}
+  activeTab="ai"
+  canonical="https://pilserlabs.com/ai/"
+  jsonLd={{
+    '@type': 'CollectionPage',
+    name: a.title,
+    description: a.sub,
+    url: 'https://pilserlabs.com/ai/',
+    about: 'AI agents, LLM infrastructure and agent orchestration at PilserLabs',
+  }}
+>
   <main class="width" style="padding-block:44px 90px">
     <section class="hero-inner" style="padding-bottom:0">
       <div>

@@ -12,6 +12,7 @@ meta:
     systems — and open software (Rust crates) that powers it. Research-driven
     engineering solving real-world problems through STEM.
   canonical: https://pilserlabs.com/
+  ogImage: /favicon.svg
 
 titlebar:
   brandName: Pilsér

@@ -110,6 +110,13 @@ function kvEnv(data: Map<string, string>): any {
     async delete(k: string) {
       data.delete(k);
     },
+    async list({ prefix }: { prefix: string }) {
+      return {
+        keys: [...data.keys()].filter((k) => k.startsWith(prefix)).map((name) => ({ name })),
+        truncated: false,
+        cursor: '',
+      };
+    },
   };
 }
 

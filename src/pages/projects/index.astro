@@ -14,7 +14,19 @@ const projects = (await listFeed(env)).filter(
 const p = site.projects;
 ---
 
-<Base title={p.title} description={p.sub} activeTab="projects">
+<Base
+  title={p.title}
+  description={p.sub}
+  activeTab="projects"
+  canonical="https://pilserlabs.com/projects/"
+  jsonLd={{
+    '@type': 'CollectionPage',
+    name: p.title,
+    description: p.sub,
+    url: 'https://pilserlabs.com/projects/',
+    about: 'software projects engineered at PilserLabs',
+  }}
+>
   <main class="width" style="padding-block:44px 90px">
     <div class="kicker">
       <span class="led blink"></span>

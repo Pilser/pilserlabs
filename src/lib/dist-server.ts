@@ -2,6 +2,7 @@ import type { CloudflareEnv, R2ObjectBody } from '../env.d';
 import type { RegistryEntry } from './types';
 import { getEntry } from './registry';
 import { injectSeoIntoHtml, rewriteCssUrls, toSeoInput } from './seo';
+import { getSeoConfig } from './seo-config';
 import { contentTypeFor } from './zip';
 
 function objKey(slug: string, path: string): string {
@@ -57,7 +58,8 @@ async function found(obj: R2ObjectBody, entry: RegistryEntry, slug: string, path
     const text = await obj.text();
     const siteUrl = env.SITE_URL || 'https://pilserlabs.com';
     const base = `/p/${slug}/`;
-    const html = injectSeoIntoHtml(text, base, toSeoInput(entry), files, siteUrl);
+    const seoConfig = await getSeoConfig(env);
+    const html = injectSeoIntoHtml(text, base, toSeoInput(entry), files, siteUrl, seoConfig.gaMeasurementId);
     const headers = {
       'content-type': 'text/html; charset=utf-8',
       'cache-control': 'no-cache, must-revalidate, max-age=0',

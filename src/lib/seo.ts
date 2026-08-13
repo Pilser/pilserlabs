@@ -62,6 +62,7 @@ export function injectSeoIntoHtml(
   seoInput: SeoInput,
   files: Set<string>,
   siteUrl: string,
+  gaMeasurementId?: string,
 ): string {
   const base = basePath.endsWith('/') ? basePath : basePath + '/';
   const title = escapeAttr(seoInput.title ?? '');
@@ -104,7 +105,15 @@ export function injectSeoIntoHtml(
     .flatMap(([k, v]) => (k && v ? [`<meta name="${escapeAttr(k)}" content="${escapeAttr(v)}">`] : []))
     .join('\n');
 
+  const ga = gaMeasurementId
+    ? [
+        `<script async src="https://www.googletagmanager.com/gtag/js?id=${escapeAttr(gaMeasurementId)}"></script>`,
+        `<script>window.dataLayer = window.dataLayer || []; function gtag(){dataLayer.push(arguments);} gtag('js', new Date()); gtag('config', '${escapeAttr(gaMeasurementId)}');</script>`,
+      ].join('\n')
+    : '';
+
   const tags = [
+    ga,
     `<base href="${base}">`,
     `<title>${title}</title>`,
     `<meta charset="utf-8">`,
