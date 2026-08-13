@@ -278,6 +278,17 @@ const s = site.station;
               </div>
             </div>
 
+            <div class="field-row">
+              <div class="field">
+                <label for="f_backend">backend worker.js (optional — deploys a dedicated Worker)</label>
+                <input type="file" id="f_backend" accept=".js,.mjs,text/javascript" />
+                <small style="color:var(--ink-faint);font-size:11px">
+                  ES module exporting fetch; served at <span class="accent">{'{slug}'}/api/plugin/*</span>.
+                  Needs the CF_API_TOKEN secret on the lab worker.
+                </small>
+              </div>
+            </div>
+
             <div class="form-actions">
               <button type="submit" class="btn btn-volt" id="submitBtn">create / update</button>
               <button type="button" class="btn btn-soft" id="resetBtn">clear form</button>
@@ -296,6 +307,7 @@ const s = site.station;
           <span class="tlabel">{s.listTitle}</span>
         </div>
         <div class="tbody">
+          <input type="file" id="backendFileInput" accept=".js,.mjs,text/javascript" hidden />
           <div class="filterbar">
             <div class="chips" id="filterChips"></div>
             <input type="search" id="searchBox" placeholder="search title / slug / tags…" style="max-width:240px" />
@@ -557,6 +569,15 @@ const s = site.station;
       const banner = e.seo?.ogImage
         ? `<img class="entry-thumb" src="${esc(e.seo.ogImage.startsWith('/') ? `/p/${e.slug}${e.seo.ogImage}` : e.seo.ogImage)}" alt="" loading="lazy" />`
         : `<span class="entry-thumb none">no banner</span>`;
+      const backendBadge = e.backend?.deployed
+        ? `<span class="badge st-ok" title="${esc(e.backend.note || '')}">⚡ backend</span>`
+        : e.backend
+          ? `<span class="badge st-mid" title="${esc(e.backend.note || '')}">backend pending</span>`
+          : '';
+      const backendOps = e.backend?.deployed
+        ? `<button class="btn btn-soft" data-ba="${esc(e.slug)}">backend</button>
+           <button class="btn btn-danger" data-bdel="${esc(e.slug)}">rm backend</button>`
+        : `<button class="btn btn-soft" data-ba="${esc(e.slug)}">backend</button>`;
       const row = document.createElement('div');
       row.className = 'entry-row';
       row.innerHTML = `
@@ -564,18 +585,21 @@ const s = site.station;
           ${banner}
           <div class="swatch">${colors}</div>
           <div>
-            <div class="name">${esc(e.title)}<span class="badge ${kindBadge}">${esc(e.kind)}</span><span class="badge ${stBadge}">${esc(e.status)}</span></div>
+            <div class="name">${esc(e.title)}<span class="badge ${kindBadge}">${esc(e.kind)}</span><span class="badge ${stBadge}">${esc(e.status)}</span>${backendBadge}</div>
             <div class="slug">/${esc(e.slug)}/ · ${(e.tags || []).join(', ')}</div>
           </div>
         </div>
         <div class="ops">
           <button class="btn btn-soft" data-open="/view/${esc(e.slug)}/">open</button>
           <button class="btn btn-soft" data-edit="${esc(e.slug)}">edit</button>
+          ${backendOps}
           <button class="btn btn-danger" data-del="${esc(e.slug)}">delete</button>
         </div>`;
       row.querySelector('[data-open]')!.addEventListener('click', () => window.open(`/view/${e.slug}/`, '_blank'));
       row.querySelector('[data-edit]')!.addEventListener('click', () => fillForm(e.slug));
       row.querySelector('[data-del]')!.addEventListener('click', () => removeEntry(e.slug, e.title));
+      row.querySelector('[data-ba]')!.addEventListener('click', () => uploadBackend(e.slug));
+      row.querySelector('[data-bdel]')!.addEventListener('click', () => removeBackend(e.slug));
       list.appendChild(row);
     });
   }
@@ -794,6 +818,35 @@ const s = site.station;
     });
   }
 
+  let backendTarget = '';
+
+  function uploadBackend(slug: string) {
+    backendTarget = slug;
+    (byId('backendFileInput') as HTMLInputElement).click();
+  }
+
+  async function removeBackend(slug: string) {
+    if (!confirm(`Remove backend worker pl-plugin-${slug}?`)) return;
+    const res = await fetch(`/api/backend?slug=${encodeURIComponent(slug)}`, { method: 'DELETE', credentials: 'include' });
+    state(res.ok ? `backend removed for /${slug}/` : 'backend removal failed', !res.ok);
+    if (res.ok) loadEntries();
+  }
+
+  function bindBackendInput() {
+    (byId('backendFileInput') as HTMLInputElement).addEventListener('change', async () => {
+      const file = (byId('backendFileInput') as HTMLInputElement).files?.[0];
+      if (!file || !backendTarget) return;
+      const fd = new FormData();
+      fd.set('slug', backendTarget);
+      fd.set('file', file);
+      const res = await fetch('/api/backend', { method: 'POST', credentials: 'include', body: fd });
+      const data: any = await res.json().catch(() => null);
+      state(res.ok ? `backend deployed for /${backendTarget}/ — ${data?.route ?? ''}` : (data?.error ?? 'backend deploy failed'), !res.ok);
+      if (res.ok) loadEntries();
+      (byId('backendFileInput') as HTMLInputElement).value = '';
+    });
+  }
+
   function bindForm() {
     byId('regForm').addEventListener('submit', async (ev: Event) => {
       ev.preventDefault();
@@ -810,6 +863,8 @@ const s = site.station;
       fd.set('clearBanner', byId('f_clearBanner').checked ? 'true' : 'false');
       if (banner) fd.set('bannerFile', banner);
       if (file) fd.set('file', file);
+      const backend = (byId('f_backend') as HTMLInputElement).files?.[0];
+      if (backend) fd.set('backendFile', backend);
       const btn = byId('submitBtn');
       btn.disabled = true;
       const res = await fetch('/api/dists', { method: 'POST', credentials: 'include', body: fd });
@@ -854,6 +909,7 @@ const s = site.station;
   });
   byId('unlock').addEventListener('click', login);
   bindMail();
+  bindBackendInput();
   bindForm();
   setupDrag();
   bootstrap();

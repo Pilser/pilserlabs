@@ -3,6 +3,8 @@ import type { EntryKind, EntryStatus, RegistryEntry } from './types';
 import { getEntry, setEntry, validSlug } from './registry';
 import { extractThemeFromCss } from './theme';
 import { contentTypeFor, unzipDistZip } from './zip';
+import type { DistFile } from './zip';
+import { deployPluginWorker, deletePluginWorker } from './plugin';
 
 const KINDS = ['experiment', 'project', 'paper'];
 const STATUSES = ['live', 'draft', 'archived'];
@@ -154,7 +156,7 @@ export async function applyEntryForm(env: CloudflareEnv, form: FormData): Promis
   const design = (DESIGNS.includes(designRaw) ? designRaw : 'minimal') as RegistryEntry['button']['design'];
 
   const zipFile = fieldFile(form, 'file');
-  let files: { path: string; bytes: Uint8Array }[] | null = null;
+  let files: DistFile[] | null = null;
   let theme = existing?.theme ?? { colors: [], variables: {} };
 
   if (zipFile) {
@@ -244,6 +246,25 @@ export async function applyEntryForm(env: CloudflareEnv, form: FormData): Promis
     entry.seo.ogImage = '';
   }
 
+  const workerFromZip = files?.find((f) => f.path === 'worker.js') ?? null;
+  const backendFile = fieldFile(form, 'backendFile');
+  if (backendFile || workerFromZip) {
+    const code = backendFile
+      ? new TextDecoder().decode(await backendFile.arrayBuffer())
+      : (workerFromZip ? (workerFromZip.text ?? new TextDecoder().decode(workerFromZip.bytes)) : '');
+    if (code.length > 500 * 1024) throw new Error('backend worker.js too large (max 500KB)');
+    try {
+      await deployPluginWorker(env, slug, code);
+      entry.backend = { deployed: true, note: 'worker deployed', updatedAt: Date.now() };
+    } catch (err) {
+      entry.backend = {
+        deployed: false,
+        note: err instanceof Error ? err.message : String(err),
+        updatedAt: Date.now(),
+      };
+    }
+  }
+
   await setEntry(env, entry);
   return { entry, created: !existing };
 }
@@ -260,6 +281,11 @@ export async function removeEntryFull(env: CloudflareEnv, slug: string): Promise
     cursor = listed.truncated ? listed.cursor : undefined;
   } while (cursor);
   await Promise.all(deletes);
+  try {
+    await deletePluginWorker(env, slug);
+  } catch {
+    /* best-effort */
+  }
   const { removeEntry } = await import('./registry');
   await removeEntry(env, slug);
 }

@@ -17,7 +17,7 @@ function entryKey(slug: string): string {
 
 export function normalizeEntry(raw: RegistryEntry): RegistryEntry {
   const kind = (KINDS as readonly string[]).includes(raw.kind) ? (raw.kind as EntryKind) : 'experiment';
-  return {
+  const entry: RegistryEntry = {
     kind,
     slug: raw.slug,
     title: raw.title ?? raw.slug,
@@ -47,6 +47,8 @@ export function normalizeEntry(raw: RegistryEntry): RegistryEntry {
     updatedAt: raw.updatedAt ?? 0,
     status: (STATUSES as readonly string[]).includes(raw.status) ? raw.status : 'live',
   };
+  if (raw.backend && typeof raw.backend === 'object') entry.backend = raw.backend;
+  return entry;
 }
 
 export async function listFeed(env: CloudflareEnv): Promise<RegistryEntry[]> {

@@ -9,6 +9,7 @@ import { extractThemeFromCss } from '../../../lib/theme';
 import { buildAgentGuide, extractAgentKey, isAgentKey } from '../../../lib/agent';
 import { getMailConfig, setMailConfig, clearMailConfig } from '../../../lib/mailer';
 import type { MailConfig } from '../../../lib/mailer';
+import { deployPluginWorker, deletePluginWorker } from '../../../lib/plugin';
 import type { RegistryEntry } from '../../../lib/types';
 
 export const prerender = false;
@@ -29,6 +30,7 @@ function publicEntry(e: RegistryEntry) {
     updatedAt: e.updatedAt,
     url: `/view/${e.slug}/`,
     standaloneUrl: `/p/${e.slug}/`,
+    backend: e.backend ?? null,
   };
 }
 
@@ -205,6 +207,45 @@ async function handle(context: APIContext, method: string): Promise<Response> {
       } catch (err) {
         return json({ ok: false, error: err instanceof Error ? err.message : 'Dist rejected' }, 400);
       }
+    }
+
+    if (action === 'backend') {
+      if (method === 'PUT' || method === 'POST') {
+        const form = await request.formData();
+        const file = form.get('file');
+        if (!(file instanceof File) || file.size === 0) return json({ ok: false, error: 'file (worker.js) required' }, 400);
+        if (file.size > 500 * 1024) return json({ ok: false, error: 'worker.js too large' }, 400);
+        const existing = await getEntry(env, slug);
+        if (!existing) return json({ ok: false, error: 'Entry not found' }, 404);
+        const code = await file.text();
+        try {
+          await deployPluginWorker(env, slug, code);
+          existing.backend = { deployed: true, note: 'worker deployed', updatedAt: Date.now() };
+          existing.updatedAt = Date.now();
+          await setEntry(env, existing);
+          return json({ ok: true, deployed: true, worker: `pl-plugin-${slug}`, route: `pilserlabs.com/api/plugin/${slug}/*` });
+        } catch (err) {
+          existing.backend = { deployed: false, note: err instanceof Error ? err.message : String(err), updatedAt: Date.now() };
+          existing.updatedAt = Date.now();
+          await setEntry(env, existing);
+          return json({ ok: false, error: err instanceof Error ? err.message : 'deploy failed' }, 400);
+        }
+      }
+      if (method === 'DELETE') {
+        try {
+          await deletePluginWorker(env, slug);
+        } catch {
+          /* best-effort */
+        }
+        const existing = await getEntry(env, slug);
+        if (existing) {
+          delete existing.backend;
+          existing.updatedAt = Date.now();
+          await setEntry(env, existing);
+        }
+        return json({ ok: true, removed: `pl-plugin-${slug}` });
+      }
+      return methodNotAllowed('PUT, POST, DELETE');
     }
 
     if (action === 'banner') {

@@ -20,6 +20,8 @@ export interface CloudflareEnv {
     }): Promise<{ messageId: string }>;
   };
   EMAIL_TO?: string;
+  CF_API_TOKEN?: string;
+  CF_ACCOUNT_ID?: string;
 }
 
 declare module 'cloudflare:workers' {

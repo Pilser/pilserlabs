@@ -25,6 +25,12 @@ export type EntryKind = 'experiment' | 'project' | 'paper';
 
 export const KINDS: EntryKind[] = ['experiment', 'project', 'paper'];
 
+export interface BackendInfo {
+  deployed: boolean;
+  note?: string;
+  updatedAt?: number;
+}
+
 export interface RegistryEntry {
   slug: string;
   title: string;
@@ -38,6 +44,7 @@ export interface RegistryEntry {
   updatedAt: number;
   status: EntryStatus;
   kind: EntryKind;
+  backend?: BackendInfo;
 }
 
 export interface ContactPayload {

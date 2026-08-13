@@ -258,6 +258,18 @@ async function main() {
     console.log('  PL_AGENT_KEY not set — skipping agent key');
   }
 
+  console.log('== setting CF_API_TOKEN secret (plugin backends) ==');
+  const cfToken = process.env.PL_CF_API_TOKEN;
+  if (cfToken) {
+    await api(`/accounts/${ACCOUNT}/workers/scripts/${WORKER}/secrets`, {
+      method: 'PUT',
+      body: { name: 'CF_API_TOKEN', type: 'secret_text', text: cfToken },
+    });
+    console.log('  CF_API_TOKEN secret set (not echoed)');
+  } else {
+    console.log('  PL_CF_API_TOKEN not set — plugin backend deploys disabled');
+  }
+
   console.log('== applying D1 schema ==');
   const schemaPath = join(ROOT, 'd1/schema.sql');
   if (existsSync(schemaPath)) {
