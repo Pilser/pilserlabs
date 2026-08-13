@@ -50,6 +50,12 @@ export async function serveDist(env: CloudflareEnv, slug: string, rawPath: strin
   return found(obj, entry, slug, path, env);
 }
 
+function withMainWindowChip(html: string, slug: string): string {
+  const chip = `<a href="/view/${slug}/" target="_top" rel="noopener" style="position:fixed;left:16px;bottom:16px;z-index:2147483647;display:inline-flex;align-items:center;gap:8px;padding:10px 15px;font:600 12px/1 ui-monospace,'SFMono-Regular',Menlo,Consolas,monospace;letter-spacing:.08em;color:#d9fbff;background:rgba(4,18,26,.92);border:1px solid #2f6a80;border-radius:999px;text-decoration:none;backdrop-filter:blur(6px);box-shadow:0 10px 28px rgba(0,0,0,.45)"><svg width="11" height="11" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M14 8H2M7 3l-5 5 5 5" stroke="currentColor" stroke-width="1.8"/></svg>pilserlabs · open in main window</a>`;
+  if (/<\/body>/i.test(html)) return html.replace(/<\/body>/i, `${chip}</body>`);
+  return `${html}${chip}`;
+}
+
 async function found(obj: R2ObjectBody, entry: RegistryEntry, slug: string, path: string, env: CloudflareEnv): Promise<Response> {
   const type = contentTypeFor(path);
   const files = new Set(entry.files.map((f) => f.replace(/^\/+/, '')));
@@ -59,7 +65,8 @@ async function found(obj: R2ObjectBody, entry: RegistryEntry, slug: string, path
     const siteUrl = env.SITE_URL || 'https://pilserlabs.com';
     const base = `/p/${slug}/`;
     const seoConfig = await getSeoConfig(env);
-    const html = injectSeoIntoHtml(text, base, toSeoInput(entry), files, siteUrl, seoConfig.gaMeasurementId);
+    let html = injectSeoIntoHtml(text, base, toSeoInput(entry), files, siteUrl, seoConfig.gaMeasurementId);
+    html = withMainWindowChip(html, slug);
     const headers = {
       'content-type': 'text/html; charset=utf-8',
       'cache-control': 'no-cache, must-revalidate, max-age=0',

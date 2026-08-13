@@ -58,6 +58,15 @@ Each mounted module ("entry") has:
   backend   { deployed, note }  optional dedicated Worker for server-side code
   banner    the card/og image, stored as /banner.<ext>, referenced by seo.ogImage
 
+URLS (two views of every module)
+----
+  url            https://pilserlabs.com/view/<slug>/   embedded INSIDE the main
+                 window (site nav stays visible). Use/share THIS for humans:
+                 pasting it lands in the main site. Cards open it in the same tab.
+  standaloneUrl  https://pilserlabs.com/p/<slug>/      the full standalone page
+                 (SEO canonical, crawler target). Only used for the explicit
+                 "open full page in its own tab" button / independent embedding.
+
 ENDPOINTS
 ---------
 1) THIS GUIDE

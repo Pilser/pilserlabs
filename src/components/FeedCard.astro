@@ -20,8 +20,25 @@ const expId = String(entry.createdAt % 100000).padStart(6, '0');
       <span class="led blink" style={`background:${c0};box-shadow:0 0 9px ${c0}`}></span>
       module <span class="experiment-id">#{expId}</span>
     </span>
+    <span class="top-right">
     <span class="mono-label">status: live</span>
-  </div>
+    <a
+      class="card-out"
+      href={`/p/${slug}/`}
+      target="_blank"
+      rel="noopener"
+      data-track="module_standalone"
+      data-track-label={entry.title}
+      data-track-id={slug}
+      title="open full page in a new tab"
+      aria-label={`Open ${entry.title} as a full page in a new tab`}
+    >
+      <svg width="11" height="11" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+        <path d="M6.5 2.5h7v7M3.5 12.5l10-10" stroke="currentColor" stroke-width="1.5" />
+      </svg>
+    </a>
+  </span>
+</div>
   {entry.seo.ogImage && (
     <div class="card-banner" style={`--c0:${c0}`}>
       <img

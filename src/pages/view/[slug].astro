@@ -43,6 +43,18 @@ const activeTab = kind === 'project' ? 'projects' : 'feed';
           <span class="led blink" style={`background:${c0};box-shadow:0 0 9px ${c0}`}></span>
           {site.viewer.meta.replace('{kind}', kind)} · <span style={`color:${c0}`}>/{slug}/</span>
         </span>
+        <button class="btn btn-ghost" type="button" data-copy={`/view/${slug}/`} data-copy-name={site.viewer.copyLink}>
+          <svg width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+            <path d="M5 11l6-6M7 5h4v4M3 13h10" stroke="currentColor" stroke-width="1.4" />
+          </svg>
+          {site.viewer.copyLink}
+        </button>
+        <button class="btn btn-ghost" type="button" data-copy={`/p/${slug}/`} data-copy-name={site.viewer.copyStandalone}>
+          <svg width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+            <path d="M6.5 2.5h7v7M3.5 12.5l10-10" stroke="currentColor" stroke-width="1.4" />
+          </svg>
+          {site.viewer.copyStandalone}
+        </button>
         <a class="btn btn-ghost" href={`/p/${slug}/`} target="_blank">
           {site.viewer.standalone}
           <svg width="13" height="13" viewBox="0 0 16 16" fill="none" aria-hidden="true">
@@ -86,3 +98,40 @@ const activeTab = kind === 'project' ? 'projects' : 'feed';
     </main>
   )}
 </Base>
+
+<script>
+  document.addEventListener('click', (e) => {
+    const target = e.target as Element | null;
+    const btn = target?.closest?.('[data-copy]') as HTMLElement | null;
+    if (!btn) return;
+    const url = new URL(btn.getAttribute('data-copy') || '/', location.href).href;
+    const name = btn.getAttribute('data-copy-name') || 'copy';
+    const restore = () => {
+      btn.textContent = name;
+      btn.classList.remove('copied');
+    };
+    const flash = () => {
+      btn.textContent = `${name} ✓`;
+      btn.classList.add('copied');
+      setTimeout(restore, 1600);
+    };
+    const fallback = () => {
+      const ta = document.createElement('textarea');
+      ta.value = url;
+      document.body.appendChild(ta);
+      ta.select();
+      try {
+        document.execCommand('copy');
+      } catch {
+        /* ignore */
+      }
+      document.body.removeChild(ta);
+      flash();
+    };
+    if (navigator.clipboard?.writeText) {
+      navigator.clipboard.writeText(url).then(flash).catch(fallback);
+    } else {
+      fallback();
+    }
+  });
+</script>
