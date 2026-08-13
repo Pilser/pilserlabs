@@ -7,3 +7,15 @@ CREATE TABLE IF NOT EXISTS contact (
   ip TEXT NOT NULL DEFAULT '',
   created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
+
+CREATE TABLE IF NOT EXISTS email_log (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  direction TEXT NOT NULL DEFAULT 'in',
+  from_addr TEXT NOT NULL DEFAULT '',
+  to_addr TEXT NOT NULL DEFAULT '',
+  subject TEXT NOT NULL DEFAULT '',
+  body TEXT NOT NULL DEFAULT '',
+  status TEXT NOT NULL DEFAULT 'received',
+  meta TEXT NOT NULL DEFAULT '',
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);

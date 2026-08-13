@@ -2,13 +2,19 @@ import type { APIContext } from 'astro';
 import { useEnv } from '../../lib/env';
 import { readJason, json, methodNotAllowed, str } from '../../lib/http';
 import { checkRate, clientIp } from '../../lib/rate';
-import { isAdminRequest, issueLoginCookie, logoutCookie } from '../../lib/admin';
+import { isAdminRequest, issueLoginCookie, logoutCookie, ADMIN_COOKIE } from '../../lib/admin';
 import { adminSecret } from '../../lib/auth';
+import { agentKey, buildAgentGuide } from '../../lib/agent';
 
 export const prerender = false;
 
 export async function GET(context: APIContext): Promise<Response> {
   const admin = await isAdminRequest(context.request);
+  const action = new URL(context.request.url).searchParams.get('action');
+  if (action === 'agent') {
+    if (!admin) return json({ ok: false, error: 'Unauthorized' }, 401);
+    return json({ ok: true, admin, agentKey: agentKey(), guide: buildAgentGuide() });
+  }
   return json({ ok: true, admin });
 }
 
@@ -34,7 +40,7 @@ export async function POST(context: APIContext): Promise<Response> {
 
   const cookie = await issueLoginCookie();
   return json({ ok: true, admin: true }, 200, {
-    'set-cookie': `${cookie}; Path=/; HttpOnly; SameSite=Strict; Max-Age=${60 * 60 * 24 * 14}`,
+    'set-cookie': `${ADMIN_COOKIE}=${cookie}; Path=/; HttpOnly; SameSite=Strict; Max-Age=${60 * 60 * 24 * 14}`,
   });
 }
 

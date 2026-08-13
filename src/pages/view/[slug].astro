@@ -1,0 +1,88 @@
+---
+import Base from '../../layouts/Base.astro';
+import site from '../../data/pilseros.json';
+import { useEnv } from '../../lib/env';
+import { getEntry } from '../../lib/registry';
+
+export const prerender = false;
+
+const slug = Astro.params.slug;
+const env = useEnv();
+const entry = slug ? await getEntry(env, slug) : null;
+
+if (!entry || entry.status === 'archived') {
+  Astro.response.status = 404;
+}
+
+const c = entry?.theme.colors ?? [];
+const c0 = c[0] ?? '#3ee0ff';
+const c1 = c[1] ?? '#00d9ff';
+const c2 = c[2] ?? '#ffc24b';
+const kind = entry?.kind ?? 'experiment';
+const activeTab = kind === 'project' ? 'projects' : 'feed';
+---
+
+<Base
+  full
+  title={entry ? `${entry.title} — embedded` : 'Not found'}
+  description={entry?.description ?? ''}
+  activeTab={activeTab}
+  noindex
+  canonical={`https://pilserlabs.com/p/${slug}/`}
+>
+  {entry ? (
+    <main class="viewer width">
+      <div class="viewer-bar">
+        <a class="btn btn-ghost" href={kind === 'project' ? '/projects/' : '/#feed'}>
+          <svg width="13" height="13" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+            <path d="M14 8H2M7 3l-5 5 5 5" stroke="currentColor" stroke-width="1.6" />
+          </svg>
+          {kind === 'project' ? site.viewer.backProjects : site.viewer.backMain}
+        </a>
+        <span class="viewer-meta">
+          <span class="led blink" style={`background:${c0};box-shadow:0 0 9px ${c0}`}></span>
+          {site.viewer.meta.replace('{kind}', kind)} · <span style={`color:${c0}`}>/{slug}/</span>
+        </span>
+        <a class="btn btn-ghost" href={`/p/${slug}/`} target="_blank">
+          {site.viewer.standalone}
+          <svg width="13" height="13" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+            <path d="M2 8h12M9 3l5 5-5 5" stroke="currentColor" stroke-width="1.6" />
+          </svg>
+        </a>
+      </div>
+
+      <div class="vframe" style={`--c0:${c0};--c1:${c1};--c2:${c2}`}>
+        <div class="vtitle">
+          <span class="vdots">
+            <i></i>
+            <i></i>
+            <i></i>
+          </span>
+          <span class="vpath">/p/{slug}/</span>
+          <span class="vstatus">
+            <span class="led blink"></span>
+            live · {entry.title}
+          </span>
+        </div>
+        <div class="vbody">
+          <iframe
+            class="viframe"
+            src={`/p/${slug}/`}
+            title={entry.title}
+            loading="lazy"
+            referrerpolicy="no-referrer"
+          ></iframe>
+        </div>
+        <div class="vfoot">
+          <span>{site.viewer.footLeft}</span>
+          <span class="accent">Pilsér{site.viewer.footRight}</span>
+        </div>
+      </div>
+    </main>
+  ) : (
+    <main class="width viewer">
+      <div class="notice">experiment not found</div>
+      <a class="btn btn-ghost" href="/">back to main</a>
+    </main>
+  )}
+</Base>

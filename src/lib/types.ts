@@ -21,6 +21,10 @@ export interface SeoSpec {
 
 export type EntryStatus = 'live' | 'draft' | 'archived';
 
+export type EntryKind = 'experiment' | 'project' | 'paper';
+
+export const KINDS: EntryKind[] = ['experiment', 'project', 'paper'];
+
 export interface RegistryEntry {
   slug: string;
   title: string;
@@ -33,6 +37,7 @@ export interface RegistryEntry {
   createdAt: number;
   updatedAt: number;
   status: EntryStatus;
+  kind: EntryKind;
 }
 
 export interface ContactPayload {

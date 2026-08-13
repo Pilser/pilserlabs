@@ -19,5 +19,8 @@
   ],
   "d1_databases": [
     { "binding": "DB", "database_name": "pilserlabs-d1", "database_id": "87ce463d-3d29-4a9a-b698-e61c540bb957" }
+  ],
+  "send_email": [
+    { "name": "EMAIL" }
   ]
 }

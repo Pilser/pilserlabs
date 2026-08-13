@@ -7,17 +7,30 @@ interface Props {
 
 const { entry } = Astro.props;
 const c = entry.theme.colors;
-const c0 = c[0] ?? '#c9ff3d';
-const c1 = c[1] ?? '#3af5c4';
-const c2 = c[2] ?? '#ffb000';
+const c0 = c[0] ?? '#3ee0ff';
+const c1 = c[1] ?? '#00d9ff';
+const c2 = c[2] ?? '#ffc24b';
 const slug = entry.slug;
+const expId = String(entry.createdAt % 100000).padStart(6, '0');
 ---
 
 <article class="card" style={`--c0:${c0};--c1:${c1};--c2:${c2}`}>
   <div class="topline">
-    <span>experiment <span class="experiment-id">#{String(entry.createdAt % 100000).padStart(6, '0')}</span></span>
-    <span class="status-dot" title="online"></span>
+    <span>
+      <span class="led blink" style={`background:${c0};box-shadow:0 0 9px ${c0}`}></span>
+      module <span class="experiment-id">#{expId}</span>
+    </span>
+    <span class="mono-label">status: live</span>
   </div>
+  {entry.seo.ogImage && (
+    <div class="card-banner" style={`--c0:${c0}`}>
+      <img
+        src={entry.seo.ogImage.startsWith('/') ? `/p/${slug}${entry.seo.ogImage}` : entry.seo.ogImage}
+        alt={entry.title}
+        loading="lazy"
+      />
+    </div>
+  )}
   <h3>{entry.title}</h3>
   <p class="desc">{entry.description}</p>
   {entry.tags.length > 0 && (
@@ -27,11 +40,18 @@ const slug = entry.slug;
       ))}
     </div>
   )}
-  <div class="bootline">→ boot log: loaded {entry.files.length} artifacts</div>
+  <div class="data-row">
+    <span>artifacts served</span>
+    <b>{String(entry.files.length).padStart(3, '0')}</b>
+  </div>
+  <div class="data-row">
+    <span>route · <span class="experiment-id">/view/{slug}/</span></span>
+    <b>live</b>
+  </div>
   <a
-    class={`btn btn-design-${entry.button.design}`}
-    href={`/p/${slug}/`}
-    target="_blank"
+    class={`btn btn-design-${entry.button.design} stretch`}
+    href={`/view/${slug}/`}
+    aria-label={`Open ${entry.title}`}
   >
     {entry.button.label}
   </a>

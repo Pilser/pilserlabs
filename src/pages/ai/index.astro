@@ -1,0 +1,45 @@
+---
+import Base from '../../layouts/Base.astro';
+import AiPanel from '../../components/AiPanel.astro';
+import site from '../../data/pilseros.json';
+
+const a = site.ai;
+---
+
+<Base title={a.title} description={a.sub} activeTab="ai">
+  <main class="width" style="padding-block:44px 90px">
+    <section class="hero-inner" style="padding-bottom:0">
+      <div>
+        <div class="kicker">
+          <span class="led blink"></span>
+          <span class="mono-label">{a.kicker}</span>
+        </div>
+        <h1 style="font-size:clamp(34px,5.5vw,64px)">
+          {a.titleParts?.map((p) =>
+            p.class === 'neon' ? <span class="neon">{p.text}</span> : p.text,
+          ) ?? a.title}
+        </h1>
+        <p class="sub" set:html={a.sub}></p>
+        <div class="cta">
+          <a class="btn btn-neon" href="/contact/">hire the lab</a>
+          <a class="btn btn-ghost" href="/projects/">view projects</a>
+        </div>
+      </div>
+      <AiPanel />
+    </section>
+
+    <section style="margin-top:56px">
+      <div class="feed-head">
+        <h2 class="mono-label">{a.focusTitle}</h2>
+      </div>
+      <div class="about-grid">
+        {a.focus.map((f) => (
+          <div class="cell">
+            <h3>{f.label}</h3>
+            <p set:html={f.text}></p>
+          </div>
+        ))}
+      </div>
+    </section>
+  </main>
+</Base>

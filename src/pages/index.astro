@@ -1,103 +1,121 @@
 ---
 import Base from '../layouts/Base.astro';
 import FeedCard from '../components/FeedCard.astro';
+import SysPanel from '../components/SysPanel.astro';
+import site from '../data/pilseros.json';
 import { useEnv } from '../lib/env';
 import { listFeed } from '../lib/registry';
 
 export const prerender = false;
 
 const env = useEnv();
-const feed = (await listFeed(env)).filter((e) => e.status === 'live');
+const feed = (await listFeed(env)).filter(
+  (e) => e.status === 'live' && e.kind !== 'project',
+);
 
-const tickerSeeds = [
-  'hosting independent experiments',
-  'every dist is a self-contained frontend',
-  'each upload registers its own seo',
-  'direct access to lab apis: contact · storage · db',
-  'open research papers as living artifacts',
-];
 const tickerParts = feed.length > 0
-  ? [...feed.map((e) => `#${e.title}`), ...tickerSeeds]
-  : tickerSeeds;
+  ? [...feed.map((e) => `#${e.title}`), ...site.ticker]
+  : site.ticker;
+
+const liveCount = feed.length;
+const artifactCount = feed.reduce((acc, e) => acc + e.files.length, 0);
+
+const statValues: Record<string, string> = {
+  experiments: String(liveCount).padStart(2, '0'),
+  artifacts: String(artifactCount).padStart(3, '0'),
+  apis: '04',
+  uptime: '100%',
+};
 ---
 
-<Base
-  title="PilserLabs — Lab of Independent Experiments"
-  description="PilserLabs hosts independent experiments. Each one is a fully autonomous frontend uploaded as its own dist with its own theme, its own SEO registration, and direct wiring into the lab APIs: contact, storage, db."
->
+<Base title={site.meta.defaultTitle} description={site.meta.description} activeTab="feed">
   <main>
     <section class="hero">
-      <div class="ticker-holder" aria-hidden="true">
+      <div class="width hero-inner">
+        <div>
+          <div class="kicker">
+            <span class="led blink"></span>
+            <span class="mono-label">{site.hero.kicker}</span>
+          </div>
+          <h1 class="flicker">
+            {site.hero.title.map((part) =>
+              part.class === 'neon' ? <span class="neon">{part.text}</span> : part.text,
+            )}
+          </h1>
+          <p class="sub" set:html={site.hero.subtitle}></p>
+          <div class="cta">
+            {site.hero.cta.map((c) => (
+              <a class={`btn ${c.variant === 'neon' ? 'btn-neon' : 'btn-ghost'}`} href={c.href}>
+                {c.label}
+              </a>
+            ))}
+          </div>
+        </div>
+        <SysPanel />
+      </div>
+
+      <div class="stats-strip width">
+        {site.stats.map((s) => (
+          <div class="stat">
+            <span class="v" id={`st-${s.id}`} style={s.accent ? 'color:var(--neon)' : ''}>
+              {statValues[s.id]}
+            </span>
+            <span class="k">{s.key}</span>
+          </div>
+        ))}
+      </div>
+
+      <div class="ticker-wrap" aria-hidden="true">
         <div class="ticker-strip">
           <div class="seg">{tickerParts.map((t) => <span>{t}</span>)}</div>
           <div class="seg" aria-hidden="true">{tickerParts.map((t) => <span>{t}</span>)}</div>
         </div>
       </div>
-      <div class="width hero-inner">
-        <div class="kicker">
-          <i class="status-dot"></i>
-          <span class="mono-label">a laboratory of living experiments · est. 2026 · worker edge</span>
-        </div>
-        <h1 class="flicker">
-          Pilsér<span class="accent"><span class="cursor"></span></span
-          >Labs
-        </h1>
-        <p class="sub">
-          <b>PilsérLabs hosts independent experiments.</b> Each one is a fully
-          autonomous frontend uploaded as its own dist — with its own theme, its own SEO
-          registration, and direct wiring into the lab APIs:
-          <span class="accent">contact</span> · <span class="accent">storage</span> · <span class="accent">db</span>.
-        </p>
-      </div>
     </section>
 
-    <section class="feed">
-      <div class="width">
-        <div class="feed-head">
-          <h2 class="mono-label">feed&nbsp;/&nbsp;experiments</h2>
-          <span class="count">{feed.length.toString().padStart(2, '0')} registered</span>
-        </div>
-
-        {feed.length === 0 ? (
-          <div class="notice">
-            No experiments mounted yet. The station is open — upload the first dist.
-          </div>
-        ) : (
-          <div class="grid">
-            {feed.map((entry) => <FeedCard entry={entry} />)}
-          </div>
-        )}
+    <section class="feed width" id="feed">
+      <div class="feed-head">
+        <h2 class="mono-label">{site.feed.heading}</h2>
+        <span class="count">{String(liveCount).padStart(2, '0')} {site.feed.count}</span>
       </div>
+
+      {liveCount === 0 ? (
+        <div class="notice">{site.feed.empty}</div>
+      ) : (
+        <div class="grid">
+          {feed.map((entry) => <FeedCard entry={entry} />)}
+        </div>
+      )}
     </section>
 
     <section class="about width">
       <div class="about-grid">
-        <div class="cell">
-          <h3>01_what this is</h3>
-          <p>
-            Not a blog. A host that mounts other websites. Upload a built dist —
-            a folder of html, css and js — and it gains a live address under{' '}
-            <span class="accent">pilserlabs.com/p/&#123;slug&#125;/</span>.
-          </p>
-        </div>
-        <div class="cell">
-          <h3>02_how the feed works</h3>
-          <p>
-            Each registration banks a banner heading, a short description, its own
-            theme colors (pulled from the dist CSS) and a custom enter-button design.
-            Every card in the feed is rendered in that experiment's palette.
-          </p>
-        </div>
-        <div class="cell">
-          <h3>03_wired to the lab</h3>
-          <div class="spec">
-            <span><b>GET/POST /api/dists</b> — registry + registration</span>
-            <span><b>POST /api/contact</b> — contact forms, D1-backed</span>
-            <span><b>PUT·GET /api/storage/&#123;path&#125;</b> — shared R2 objects</span>
-            <span><b>POST /api/db</b> — structured queries on plugin_* tables</span>
+        {site.about.map((cell) => (
+          <div class="cell">
+            <h3>{cell.id} · {cell.title}</h3>
+            {cell.body ? <p set:html={cell.body}></p> : null}
+            {cell.specs ? (
+              <div class="spec">
+                {cell.specs.map((sp) => (
+                  <span><b>{sp.label}</b> — {sp.text}</span>
+                ))}
+              </div>
+            ) : null}
           </div>
-        </div>
+        ))}
       </div>
     </section>
   </main>
 </Base>
+
+<script>
+  const stCount = document.getElementById('st-experiments');
+  if (stCount) {
+    fetch('/api/dists?action=feed')
+      .then((r) => r.json())
+      .then((d: any) => {
+        if (Array.isArray(d?.feed)) stCount.textContent = String(d.feed.length).padStart(2, '0');
+      })
+      .catch(() => {});
+  }
+</script>

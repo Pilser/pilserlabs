@@ -1,0 +1,310 @@
+{
+  "meta": {
+    "siteName": "PilserLabs",
+    "defaultTitle": "PilserLabs — AI Agents · Serverless · Distributed Systems",
+    "description": "PilserLabs is an IT engineering lab. We build AI agents and LLM infrastructure, serverless and distributed architectures that scale horizontally and vertically, resilient networks and distributed file systems — and open software (Rust crates) that powers it. Research-driven engineering solving real-world problems through STEM.",
+    "canonical": "https://pilserlabs.com/"
+  },
+  "titlebar": {
+    "brandName": "Pilsér",
+    "brandOs": "//OS",
+    "version": "v0.1.0 · IT engineering lab",
+    "readouts": [
+      {
+        "led": "blink",
+        "text": "systems online",
+        "hideSm": true
+      },
+      {
+        "text": "node:",
+        "bold": "edge",
+        "hideSm": true
+      },
+      {
+        "led": "volt-blink",
+        "text": "lab"
+      }
+    ]
+  },
+  "tabs": [
+    {
+      "id": "feed",
+      "label": "feed",
+      "href": "/"
+    },
+    {
+      "id": "projects",
+      "label": "projects",
+      "href": "/projects/"
+    },
+    {
+      "id": "ai",
+      "label": "ai",
+      "href": "/ai/"
+    },
+    {
+      "id": "contact",
+      "label": "contact",
+      "href": "/contact/"
+    },
+    {
+      "id": "station",
+      "label": "station",
+      "href": "/admin"
+    }
+  ],
+  "hero": {
+    "kicker": "IT engineering lab // ai agents · serverless · distributed systems",
+    "title": [
+      {
+        "text": "Pilsér",
+        "class": ""
+      },
+      {
+        "text": "//Labs",
+        "class": "neon"
+      }
+    ],
+    "subtitle": "<b>We engineer intelligent systems.</b> AI agents and LLM infrastructure, serverless and distributed architectures that scale horizontally and vertically, resilient networks, distributed file systems and storage — and open software (Rust crates) that powers it. We are researchers in IT engineering, solving real-world problems through STEM.",
+    "cta": [
+      {
+        "label": "enter feed",
+        "href": "#feed",
+        "variant": "ghost"
+      },
+      {
+        "label": "view projects",
+        "href": "/projects/",
+        "variant": "ghost"
+      },
+      {
+        "label": "contact us",
+        "href": "/contact/",
+        "variant": "neon"
+      }
+    ]
+  },
+  "stats": [
+    {
+      "id": "experiments",
+      "key": "experiments mounted"
+    },
+    {
+      "id": "artifacts",
+      "key": "artifacts served"
+    },
+    {
+      "id": "apis",
+      "key": "lab api endpoints"
+    },
+    {
+      "id": "uptime",
+      "key": "uptime · edge",
+      "accent": true
+    }
+  ],
+  "ticker": [
+    "ai agents & llm orchestration",
+    "serverless infrastructure at the edge",
+    "horizontal & vertical scaling",
+    "distributed file systems & storage",
+    "load balancers & resilient networks",
+    "rust crates & community software",
+    "stem research → real world problems"
+  ],
+  "feed": {
+    "heading": "feed / experiments & research",
+    "count": "registered · live",
+    "empty": "No research mounted yet. The station is open — publish the first study."
+  },
+  "projects": {
+    "kicker": "projects // shipped & running",
+    "title": "Projects",
+    "titleParts": [
+      {
+        "text": "//",
+        "class": ""
+      },
+      {
+        "text": "Shipped",
+        "class": "neon"
+      }
+    ],
+    "sub": "Production work and proof-of-concept systems we build — agent pipelines, serverless backends and distributed infrastructure. Each project runs as a live module you can open and operate right from this console.",
+    "heading": "projects / open & operate",
+    "count": "mounted · running",
+    "empty": "No projects mounted yet. Register a dist with kind \"project\" from the station."
+  },
+  "ai": {
+    "kicker": "research // ai agents & llm infrastructure",
+    "title": "Agents at the Edge",
+    "titleParts": [
+      {
+        "text": "Agents",
+        "class": ""
+      },
+      {
+        "text": " // the Edge",
+        "class": "neon"
+      }
+    ],
+    "sub": "We design and operate agent systems — model orchestration, retrieval and tool-use, evaluation, and the serverless infrastructure that runs them at scale. The mesh below is our actual runtime topology: a user prompt fans out to tools, memory, retrieval and the model, then loops back through guardrails before it ships.",
+    "focusTitle": "focus areas",
+    "focus": [
+      {
+        "label": "Agent orchestration",
+        "text": "Routers and supervisors that break problems into steps, hand off to specialist agents, and stream structured results back — observable at every hop."
+      },
+      {
+        "label": "Tools & retrieval",
+        "text": "Function calling, tool use, RAG and memory that ground models in real data instead of guesswork."
+      },
+      {
+        "label": "Evaluation & guardrails",
+        "text": "Evals, sandboxes and policy checks between the model and the user, so autonomy stays safe in production."
+      },
+      {
+        "label": "Serverless LLM ops",
+        "text": "Durable state, queues and workers that run agent loops at the edge — scaling horizontally without operators."
+      },
+      {
+        "label": "STEM-driven R&D",
+        "text": "Research-backed engineering: we formalize problems, prototype on the edge, measure, and publish what works."
+      }
+    ],
+    "panel": {
+      "title": "agent runtime // orchestration",
+      "link": "runtime:",
+      "online": "healthy",
+      "readouts": [
+        {
+          "k": "agents",
+          "v": "04"
+        },
+        {
+          "k": "tools bound",
+          "v": "09"
+        },
+        {
+          "k": "ctx window",
+          "v": "128k"
+        },
+        {
+          "k": "tokens/s",
+          "v": "~1.2k"
+        }
+      ]
+    },
+    "nodes": {
+      "input": "USER PROMPT",
+      "orchestrator": "ORCHESTRATOR",
+      "tools": "TOOLS",
+      "memory": "MEMORY",
+      "rag": "RETRIEVAL",
+      "model": "MODEL",
+      "guard": "GUARDRAILS",
+      "response": "RESPONSE"
+    }
+  },
+  "contact": {
+    "kicker": "contact // hire the lab",
+    "title": "Talk to the Lab",
+    "titleParts": [
+      {
+        "text": "Talk to",
+        "class": ""
+      },
+      {
+        "text": " the Lab",
+        "class": "neon"
+      }
+    ],
+    "sub": "If you are building with AI agents, scaling serverless infrastructure, or fighting distributed-systems problems — or if you simply want engineering that looks and feels different — open a channel. We reply fast.",
+    "email": "info@pilserlabs.com",
+    "channel": "on-demand — no gatekeepers",
+    "turnaround": "usually within 24h",
+    "formTitle": "send a transmission",
+    "nameLabel": "your name",
+    "emailLabel": "your email",
+    "messageLabel": "your message",
+    "consent": "I agree to be contacted about this inquiry.",
+    "send": "transmit",
+    "ok": "Transmission received — we'll reply soon.",
+    "err": "Transmission failed. Try again or email us directly."
+  },
+  "about": [
+    {
+      "id": "01",
+      "title": "who we are",
+      "body": "Researchers in IT engineering. We build systems that run at the edge, formalize real-world problems in STEM terms, and turn them into deployed, measurable software."
+    },
+    {
+      "id": "02",
+      "title": "what we build",
+      "body": "AI agents and LLM infrastructure, serverless execution, distributed file systems and storage, load balancers and networks that scale horizontally and vertically — architecture you can reason about."
+    },
+    {
+      "id": "03",
+      "title": "how to engage",
+      "specs": [
+        {
+          "label": "Hire the lab",
+          "text": "agents · serverless · distributed infra"
+        },
+        {
+          "label": "Follow the work",
+          "text": "every project runs live in this console"
+        },
+        {
+          "label": "Open channels",
+          "text": "info@pilserlabs.com — replies within 24h"
+        }
+      ]
+    }
+  ],
+  "footer": {
+    "left": "PILSERLABS · IT ENGINEERING LAB · {year}",
+    "hint": "research-driven engineering for real-world systems",
+    "right": "hire us · projects · contact",
+    "rightBold": "info@pilserlabs.com"
+  },
+  "telemetry": {
+    "title": "lab-net // telemetry",
+    "link": "link:",
+    "online": "online",
+    "expKey": "experiments",
+    "regionKey": "edge region",
+    "netKey": "net status",
+    "nominal": "nominal",
+    "uptimeKey": "uptime"
+  },
+  "station": {
+    "gateTitle": "ACCESS GATE",
+    "gateDesc": "The registrar is admin-gated. Enter the lab access code.",
+    "gateLabel": "access code",
+    "gateBtn": "unlock",
+    "consoleNotice": "Control master armed. Manage every module — kind, status, theme, SEO and banners — or hand the whole job to the lab agent.",
+    "registerLabel": "REGISTER · UPDATE MODULE",
+    "registryLabel": "REGISTRY",
+    "agentTitle": "LAB AGENT · AUTOMATION",
+    "agentDesc": "An external agent can fully manage this portal. Copy the guide below and hand it to the agent — the key inside is all the authentication it needs.",
+    "agentKeyLabel": "agent key",
+    "agentGuideBtn": "copy agent guide",
+    "agentGuideHint": "Guide includes the endpoint, the key, and every command for listing, creating, updating, uploading dists and banners, and deleting modules.",
+    "controlsTitle": "MODULE CONTROLS",
+    "listTitle": "REGISTRY // ALL MODULES",
+    "filterAll": "all",
+    "filterExperiment": "experiments",
+    "filterProject": "projects",
+    "filterPaper": "papers"
+  },
+  "viewer": {
+    "meta": "mounted module · {kind}",
+    "standalone": "open standalone",
+    "backMain": "back to main",
+    "backProjects": "back to projects",
+    "pathPrefix": "/p/",
+    "footLeft": "runs on the lab runtime · serverless edge",
+    "footRight": "Pilsér//OS"
+  }
+}

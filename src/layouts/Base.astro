@@ -1,19 +1,29 @@
 ---
 import '../styles/global.css';
+import site from '../data/pilseros.json';
 
 interface Props {
   title?: string;
   description?: string;
   full?: boolean;
+  activeTab?: string;
+  noindex?: boolean;
+  canonical?: string;
 }
 
 const {
-  title = 'PilserLabs',
-  description = 'PilserLabs hosts independent, self-contained experiments — each a fully autonomous frontend with its own theme, its own SEO, and direct access to the lab APIs.',
+  title = site.meta.defaultTitle,
+  description = site.meta.description,
   full = false,
+  activeTab = 'feed',
+  noindex = false,
+  canonical = site.meta.canonical,
 } = Astro.props;
 
 const year = new Date().getFullYear();
+
+const tabs = site.tabs;
+const tabPath = 'M14 1.5 H106 L118.5 12 V24 L106 34.5 H14 L1.5 24 V12 Z';
 ---
 
 <!doctype html>
@@ -21,40 +31,78 @@ const year = new Date().getFullYear();
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>{full ? title : `${title} · PilserLabs`}</title>
+    <title>{full ? title : `${title} · ${site.meta.siteName}`}</title>
     <meta name="description" content={description} />
-    <meta name="robots" content="index, follow" />
-    <link rel="canonical" href={'https://pilserlabs.com/'} />
+    <meta name="robots" content={noindex ? 'noindex, nofollow' : 'index, follow'} />
+    <link rel="canonical" href={canonical} />
     <meta name="color-scheme" content="dark" />
-    <meta name="theme-color" content="#05070a" />
+    <meta name="theme-color" content="#03050b" />
     <meta property="og:type" content="website" />
-    <meta property="og:site_name" content="PilserLabs" />
+    <meta property="og:site_name" content={site.meta.siteName} />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
-    <meta property="og:url" content="https://pilserlabs.com/" />
+    <meta property="og:url" content={site.meta.canonical} />
     <meta name="twitter:card" content="summary_large_image" />
   </head>
   <body>
     <header class="site-header">
-      <div class="width header-inner">
-        <a href="/" class="brand">
-          <span class="glyph">PL</span>
-          <span>Pilsér&nbsp;Labs</span>
-        </a>
-        <nav class="header-status">
-          <span class="status-line hide-sm"><i class="status-dot"></i>systems nominal</span>
-          <a href="/" class="hide-sm">feed</a>
-          <a href="/sitemap.xml">sitemap</a>
-          <a href="/admin">station</a>
+      <div class="width">
+        <div class="titlebar">
+          <a href="/" class="brand">
+            <span class="glyph">PL</span>
+            <span>
+              {site.titlebar.brandName}<span class="accent">{site.titlebar.brandOs}</span>
+              <span class="osver">{site.titlebar.version}</span>
+            </span>
+          </a>
+          <div class="title-readout">
+            {site.titlebar.readouts.map((r) => (
+              <span class={`r${r.hideSm ? ' hide-sm' : ''}`}>
+                {r.led && <span class={`led ${r.led === 'blink' ? 'blink' : r.led === 'volt-blink' ? 'volt blink' : ''}`}></span>}
+                {r.text && r.text}
+                {r.bold && <b>{r.bold}</b>}
+              </span>
+            ))}
+          </div>
+        </div>
+
+        <nav class="tabbar" aria-label="primary">
+          {tabs.map((t) => {
+            const active = t.id === activeTab;
+            return (
+              <a
+                class="tab"
+                href={t.href}
+                aria-current={active ? 'true' : undefined}
+              >
+                <svg class="tabshape" viewBox="0 0 120 36" preserveAspectRatio="none" aria-hidden="true">
+                  <path d={tabPath} />
+                </svg>
+                <span class="tab-led"></span>
+                <span>{t.label}</span>
+                <span class="tab-scan"></span>
+              </a>
+            );
+          })}
         </nav>
       </div>
     </header>
 
     <slot />
 
-    <footer class="site-footer width">
-      <span>Pilsér Labs · hosting independent experiments · {year}</span>
-      <span class="ghost">every upload is a self-contained dist, directly wired into the lab APIs</span>
+    <footer class="site-footer">
+      <div class="width" style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px">
+        <span class="ft-seg">
+          <span class="led blink"></span>
+          {site.footer.left.replace('{year}', String(year))}
+        </span>
+        <span class="ft-seg hide-sm">
+          <b>▲</b> {site.footer.hint}
+        </span>
+        <span class="ft-seg">
+          {site.footer.right} · <b class="accent">{site.footer.rightBold}</b>
+        </span>
+      </div>
     </footer>
   </body>
 </html>

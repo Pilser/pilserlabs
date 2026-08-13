@@ -1,0 +1,45 @@
+---
+import Base from '../../layouts/Base.astro';
+import FeedCard from '../../components/FeedCard.astro';
+import site from '../../data/pilseros.json';
+import { useEnv } from '../../lib/env';
+import { listFeed } from '../../lib/registry';
+
+export const prerender = false;
+
+const env = useEnv();
+const projects = (await listFeed(env)).filter(
+  (e) => e.status === 'live' && e.kind === 'project',
+);
+const p = site.projects;
+---
+
+<Base title={p.title} description={p.sub} activeTab="projects">
+  <main class="width" style="padding-block:44px 90px">
+    <div class="kicker">
+      <span class="led blink"></span>
+      <span class="mono-label">{p.kicker}</span>
+    </div>
+    <h1 style="font-size:clamp(30px,4.5vw,52px);margin-top:14px;margin-bottom:10px">
+      {p.titleParts?.map((part) =>
+        part.class === 'neon' ? <span class="neon">{part.text}</span> : part.text,
+      ) ?? p.title}
+    </h1>
+    <p class="sub" style="margin-top:10px" set:html={p.sub}></p>
+
+    <section class="feed" style="padding-top:34px">
+      <div class="feed-head">
+        <h2 class="mono-label">{p.heading}</h2>
+        <span class="count">{String(projects.length).padStart(2, '0')} {p.count}</span>
+      </div>
+
+      {projects.length === 0 ? (
+        <div class="notice">{p.empty}</div>
+      ) : (
+        <div class="grid">
+          {projects.map((entry) => <FeedCard entry={entry} />)}
+        </div>
+      )}
+    </section>
+  </main>
+</Base>

@@ -1,0 +1,146 @@
+---
+import site from '../data/pilseros.json';
+
+interface Props {
+  nodes?: number;
+}
+
+const { nodes = 6 } = Astro.props;
+const pulses = [0, 0.9, 1.8];
+const t = site.telemetry;
+---
+
+<div class="syspanel panel scan">
+  <div class="panel-head">
+    <span class="led blink"></span>
+    <span class="grow">{t.title}</span>
+    <span>{t.link} <b class="accent">{t.online}</b></span>
+  </div>
+  <div class="panel-body">
+    <svg
+      class="radar"
+      viewBox="0 0 320 320"
+      role="img"
+      aria-label="PilserLabs network telemetry radar"
+    >
+      <defs>
+        <linearGradient id="sweepGrad" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="rgba(62,224,255,0.0)" />
+          <stop offset="100%" stop-color="rgba(62,224,255,0.55)" />
+        </linearGradient>
+      </defs>
+
+      <circle cx="160" cy="160" r="128" fill="none" stroke="var(--line)" />
+      <circle cx="160" cy="160" r="94" fill="none" stroke="var(--line)" stroke-dasharray="3 6" />
+      <circle cx="160" cy="160" r="60" fill="none" stroke="var(--line)" stroke-dasharray="10 6" />
+      <g class="ring-rot">
+        <circle cx="160" cy="160" r="112" fill="none" stroke="var(--neon)" stroke-opacity="0.5" stroke-dasharray="60 240" stroke-linecap="round" />
+      </g>
+      <g class="ring-rot-rev">
+        <circle cx="160" cy="160" r="80" fill="none" stroke="var(--azure)" stroke-opacity="0.4" stroke-dasharray="30 220" stroke-linecap="round" />
+      </g>
+
+      <line x1="34" y1="160" x2="286" y2="160" stroke="var(--line)" />
+      <line x1="160" y1="34" x2="160" y2="286" stroke="var(--line)" />
+      <line x1="62" y1="62" x2="258" y2="258" stroke="var(--line)" stroke-opacity="0.5" />
+      <line x1="258" y1="62" x2="62" y2="258" stroke="var(--line)" stroke-opacity="0.5" />
+
+      <g class="sweep">
+        <path d="M160 160 L250 94 A128 128 0 0 1 250 226 Z" fill="url(#sweepGrad)" />
+      </g>
+
+      {pulses.map((delay) => (
+        <circle class="pulse" style={`animation-delay:${delay}s`} cx="160" cy="160" r="30" fill="none" stroke="var(--neon)" stroke-opacity="0.8" />
+      ))}
+
+      <circle cx="160" cy="160" r="4" fill="var(--neon)" />
+      <circle cx="160" cy="160" r="7" fill="none" stroke="var(--neon)" stroke-opacity="0.7" />
+
+      {nodes > 0 &&
+        Array.from({ length: nodes }, (_, i) => {
+          const a = (i / nodes) * Math.PI * 2;
+          const r = 100;
+          const x = 160 + Math.cos(a) * r;
+          const y = 160 + Math.sin(a) * r;
+          return (
+            <g>
+              <circle cx={x} cy={y} r="3" fill="var(--neon-bright)" opacity="0.9" />
+              <line x1={x} y1={y} x2={160} y2={160} stroke="var(--neon)" stroke-opacity="0.2" stroke-dasharray="2 6" />
+            </g>
+          );
+        })}
+
+      <line x1="40" y1="40" x2="52" y2="40" stroke="var(--neon)" stroke-opacity="0.7" />
+      <line x1="40" y1="40" x2="40" y2="52" stroke="var(--neon)" stroke-opacity="0.7" />
+      <line x1="280" y1="40" x2="268" y2="40" stroke="var(--neon)" stroke-opacity="0.7" />
+      <line x1="280" y1="40" x2="280" y2="52" stroke="var(--neon)" stroke-opacity="0.7" />
+      <line x1="40" y1="280" x2="52" y2="280" stroke="var(--neon)" stroke-opacity="0.7" />
+      <line x1="40" y1="280" x2="40" y2="268" stroke="var(--neon)" stroke-opacity="0.7" />
+      <line x1="280" y1="280" x2="268" y2="280" stroke="var(--neon)" stroke-opacity="0.7" />
+      <line x1="280" y1="280" x2="280" y2="268" stroke="var(--neon)" stroke-opacity="0.7" />
+
+      <g transform="translate(78 268)">
+        {[0, 1, 2, 3, 4, 5, 6, 7].map((i) => (
+          <rect
+            x={String(i * 20)}
+            y="0"
+            width="9"
+            height={String(i % 2 === 0 ? 26 : 40)}
+            rx="2"
+            fill="var(--neon)"
+            fill-opacity="0.55"
+            class="wave-bar"
+            style={`animation-delay:${(i % 4) * 0.18}s`}
+            transform={`translate(0 ${i % 3 === 0 ? 8 : 0})`}
+          />
+        ))}
+      </g>
+    </svg>
+
+    <div class="readouts">
+      <div class="ro">
+        <span class="k">{t.expKey}</span>
+        <span class="v" id="sysExp">--</span>
+      </div>
+      <div class="ro">
+        <span class="k">{t.regionKey}</span>
+        <span class="v" id="sysRegion">--</span>
+      </div>
+      <div class="ro">
+        <span class="k">{t.netKey}</span>
+        <span class="v accent">{t.nominal}</span>
+      </div>
+      <div class="ro">
+        <span class="k">{t.uptimeKey}</span>
+        <span class="v" id="sysUptime">00:00:00</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const expEl = document.getElementById('sysExp');
+  const uptimeEl = document.getElementById('sysUptime');
+
+  try {
+    fetch('/api/dists?action=feed')
+      .then((r) => r.json())
+      .then((d: any) => {
+        if (expEl && d?.feed) expEl.textContent = String(d.feed.length).padStart(2, '0');
+      })
+      .catch(() => {});
+  } catch {
+    /* noop */
+  }
+
+  if (uptimeEl) {
+    const start = Date.now();
+    setInterval(() => {
+      const s = Math.floor((Date.now() - start) / 1000);
+      const hh = String(Math.floor(s / 3600)).padStart(2, '0');
+      const mm = String(Math.floor((s % 3600) / 60)).padStart(2, '0');
+      const ss = String(s % 60).padStart(2, '0');
+      uptimeEl.textContent = `${hh}:${mm}:${ss}`;
+    }, 1000);
+  }
+</script>

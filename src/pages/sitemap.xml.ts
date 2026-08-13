@@ -20,6 +20,9 @@ export async function GET(_context: APIContext): Promise<Response> {
 
   const urls = [
     url('/', Date.now(), '1.0'),
+    url('/projects/', Date.now(), '0.8'),
+    url('/ai/', Date.now(), '0.8'),
+    url('/contact/', Date.now(), '0.8'),
     url('/admin', Date.now(), '0.2'),
     ...live.map((e: RegistryEntry) => url(`/p/${e.slug}/`, e.updatedAt, '0.9')),
   ];

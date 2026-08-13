@@ -24,7 +24,7 @@ export async function isAdminRequest(request: Request): Promise<boolean> {
 }
 
 export async function issueLoginCookie(): Promise<string> {
-  return createSession(60 * 60 * 24 * 14);
+  return createSession(60 * 60 * 24 * 14 * 1000);
 }
 
 export function logoutCookie(): string {

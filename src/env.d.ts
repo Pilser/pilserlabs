@@ -9,6 +9,17 @@ export interface CloudflareEnv {
   ASSETS: Fetcher;
   SITE_URL: string;
   ADMIN_PASSWORD: string;
+  EMAIL?: {
+    send(payload: {
+      to: string | string[];
+      from: { email: string; name?: string } | string;
+      replyTo?: string;
+      subject: string;
+      text?: string;
+      html?: string;
+    }): Promise<{ messageId: string }>;
+  };
+  EMAIL_TO?: string;
 }
 
 declare module 'cloudflare:workers' {

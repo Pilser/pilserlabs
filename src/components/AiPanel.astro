@@ -1,0 +1,140 @@
+---
+import site from '../data/pilseros.json';
+
+const t = site.ai.panel;
+const n = site.ai.nodes;
+const pulses = [0, 1.2, 2.4];
+
+interface Nd {
+  x: number;
+  y: number;
+  label: string;
+  color: string;
+  core?: boolean;
+}
+
+const nodes: Record<string, Nd> = {
+  input: { x: 52, y: 70, label: n.input, color: 'var(--neon)' },
+  orchestrator: { x: 196, y: 168, label: n.orchestrator, color: 'var(--neon-bright)', core: true },
+  tools: { x: 306, y: 52, label: n.tools, color: 'var(--cyan)' },
+  memory: { x: 306, y: 122, label: n.memory, color: 'var(--cyan)' },
+  rag: { x: 306, y: 216, label: n.rag, color: 'var(--cyan)' },
+  model: { x: 306, y: 292, label: n.model, color: 'var(--azure)' },
+  guard: { x: 366, y: 254, label: n.guard, color: 'var(--amber)' },
+  response: { x: 366, y: 96, label: n.response, color: 'var(--neon)' },
+};
+
+interface Edge {
+  a: string;
+  b: string;
+  flow?: number;
+}
+
+const edges: Edge[] = [
+  { a: 'input', b: 'orchestrator', flow: 1.3 },
+  { a: 'orchestrator', b: 'tools', flow: 0.9 },
+  { a: 'orchestrator', b: 'memory', flow: 1.1 },
+  { a: 'orchestrator', b: 'rag', flow: 1.4 },
+  { a: 'orchestrator', b: 'model', flow: 1.7 },
+  { a: 'tools', b: 'model' },
+  { a: 'memory', b: 'model' },
+  { a: 'rag', b: 'model' },
+  { a: 'model', b: 'guard' },
+  { a: 'guard', b: 'response', flow: 1.0 },
+];
+---
+
+<div class="aipanel panel scan">
+  <div class="panel-head">
+    <span class="led blink"></span>
+    <span class="grow">{t.title}</span>
+    <span>{t.link} <b class="accent">{t.online}</b></span>
+  </div>
+  <div class="panel-body">
+    <svg
+      class="neural"
+      viewBox="0 0 400 340"
+      role="img"
+      aria-label="PilserLabs agent orchestration runtime"
+    >
+      <rect x="1" y="1" width="398" height="338" fill="none" stroke="var(--line)" stroke-dasharray="3 6" />
+
+      {edges.map((e) => {
+        const a = nodes[e.a] as Nd | undefined;
+        const b = nodes[e.b] as Nd | undefined;
+        if (!a || !b) return null;
+        return (
+          <g>
+            <line x1={a.x} y1={a.y} x2={b.x} y2={b.y} stroke="var(--line)" stroke-width="1" />
+            {e.flow ? (
+              <path
+                d={`M${a.x} ${a.y} L${b.x} ${b.y}`}
+                class="flow"
+                style={`animation-duration:${e.flow}s`}
+                stroke={e.a === 'model' || e.a === 'guard' ? 'var(--amber)' : 'var(--neon)'}
+                stroke-opacity="0.85"
+                stroke-width="1.6"
+                stroke-linecap="round"
+              />
+            ) : null}
+          </g>
+        );
+      })}
+
+      {pulses.map((delay) => (
+        <circle class="pulse" style={`animation-delay:${delay}s`} cx={nodes.orchestrator!.x} cy={nodes.orchestrator!.y} r="26" fill="none" stroke="var(--neon)" stroke-opacity="0.8" />
+      ))}
+      <g class="ring-rot">
+        <circle cx={nodes.orchestrator!.x} cy={nodes.orchestrator!.y} r="34" fill="none" stroke="var(--azure)" stroke-opacity="0.4" stroke-dasharray="16 200" stroke-linecap="round" />
+      </g>
+
+      {Object.entries(nodes).map(([key, nd]) => (
+        <g>
+          <circle cx={nd.x} cy={nd.y} r={nd.core ? 9 : 6} fill={nd.color} />
+          <circle cx={nd.x} cy={nd.y} r={nd.core ? 15 : 11} fill="none" stroke={nd.color} stroke-opacity="0.55" />
+          <text
+            x={nd.x}
+            y={nd.y + (key === 'input' ? -20 : key === 'orchestrator' ? -30 : key === 'response' ? -20 : 30)}
+            text-anchor="middle"
+            fill="var(--ink-dim)"
+            font-size="9.5"
+            letter-spacing="1.5"
+            font-family="var(--mono)"
+          >
+            {nd.label}
+          </text>
+        </g>
+      ))}
+
+      <line x1="10" y1="10" x2="24" y2="10" stroke="var(--neon)" stroke-opacity="0.7" />
+      <line x1="10" y1="10" x2="10" y2="24" stroke="var(--neon)" stroke-opacity="0.7" />
+      <line x1="390" y1="330" x2="376" y2="330" stroke="var(--neon)" stroke-opacity="0.7" />
+      <line x1="390" y1="330" x2="390" y2="316" stroke="var(--neon)" stroke-opacity="0.7" />
+
+      <g transform="translate(14 300)">
+        {[0, 1, 2, 3, 4, 5].map((i) => (
+          <rect
+            x={String(i * 15)}
+            y="0"
+            width="7"
+            height={String(i % 3 === 0 ? 18 : i % 2 === 0 ? 26 : 12)}
+            rx="2"
+            fill="var(--neon)"
+            fill-opacity="0.5"
+            class="wave-bar"
+            style={`animation-delay:${(i % 4) * 0.15}s`}
+          />
+        ))}
+      </g>
+    </svg>
+
+    <div class="readouts">
+      {t.readouts.map((ro) => (
+        <div class="ro">
+          <span class="k">{ro.k}</span>
+          <span class="v">{ro.v}</span>
+        </div>
+      ))}
+    </div>
+  </div>
+</div>

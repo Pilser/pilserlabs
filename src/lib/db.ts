@@ -17,6 +17,40 @@ export async function ensureContactTable(env: CloudflareEnv): Promise<void> {
   await env.DB.exec(CONTACT_TABLE);
 }
 
+export interface EmailLogRow {
+  id: number;
+  direction: string;
+  from_addr: string;
+  to_addr: string;
+  subject: string;
+  body: string;
+  status: string;
+  meta: string;
+  created_at: string;
+}
+
+const EMAIL_LOG_TABLE = 'CREATE TABLE IF NOT EXISTS email_log (id INTEGER PRIMARY KEY AUTOINCREMENT, direction TEXT NOT NULL DEFAULT "in", from_addr TEXT NOT NULL DEFAULT "", to_addr TEXT NOT NULL DEFAULT "", subject TEXT NOT NULL DEFAULT "", body TEXT NOT NULL DEFAULT "", status TEXT NOT NULL DEFAULT "received", meta TEXT NOT NULL DEFAULT "", created_at TEXT NOT NULL DEFAULT (datetime("now")))';
+
+export async function ensureEmailLogTable(env: CloudflareEnv): Promise<void> {
+  await env.DB.exec(EMAIL_LOG_TABLE);
+}
+
+export async function insertEmailLog(
+  env: CloudflareEnv,
+  row: { direction: string; fromAddr: string; toAddr: string; subject: string; body: string; status: string; meta?: string },
+): Promise<void> {
+  await env.DB.prepare(
+    'INSERT INTO email_log (direction, from_addr, to_addr, subject, body, status, meta) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)',
+  )
+    .bind(row.direction, row.fromAddr, row.toAddr, row.subject, row.body.slice(0, 4000), row.status, row.meta ?? '')
+    .run();
+}
+
+export async function listEmailLog(env: CloudflareEnv, limit = 60): Promise<EmailLogRow[]> {
+  const res = await env.DB.prepare('SELECT * FROM email_log ORDER BY id DESC LIMIT ?1').bind(limit).all();
+  return res.results as unknown as EmailLogRow[];
+}
+
 export async function insertContact(env: CloudflareEnv, c: ContactPayload, ip: string): Promise<void> {
   await env.DB.prepare(
     'INSERT INTO contact (plugin, name, email, message, ip) VALUES (?1, ?2, ?3, ?4, ?5)',

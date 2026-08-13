@@ -1,0 +1,101 @@
+---
+import Base from '../../layouts/Base.astro';
+import site from '../../data/pilseros.json';
+
+const c = site.contact;
+---
+
+<Base title={c.title} description={c.sub} activeTab="contact">
+  <main class="width" style="padding-block:44px 90px">
+    <div class="hero-inner" style="padding-bottom:0">
+      <div>
+        <div class="kicker">
+          <span class="led blink"></span>
+          <span class="mono-label">{c.kicker}</span>
+        </div>
+        <h1 style="font-size:clamp(32px,5vw,58px);margin-top:10px;margin-bottom:12px">
+          {c.titleParts?.map((p) =>
+            p.class === 'neon' ? <span class="neon">{p.text}</span> : p.text,
+          ) ?? c.title}
+        </h1>
+        <p class="sub" set:html={c.sub}></p>
+        <div class="spec" style="margin-top:24px;display:grid;gap:8px">
+          <span><b>direct line</b> — <a class="accent" href={`mailto:${c.email}`}>{c.email}</a></span>
+          <span><b>channel</b> — {c.channel}</span>
+          <span><b>turnaround</b> — {c.turnaround}</span>
+        </div>
+      </div>
+
+      <form class="terminal" id="contactForm" style="max-width:460px" data-copy={JSON.stringify({ ok: c.ok, err: c.err })}>
+        <div class="tbar">
+          <i class="dot" style="background:#3ee0ff"></i>
+          <i class="dot" style="background:#00d9ff"></i>
+          <i class="dot" style="background:#ffc24b"></i>
+          <span class="tlabel">{c.formTitle}</span>
+        </div>
+        <div class="tbody">
+          <div class="field">
+            <label for="cname">{c.nameLabel}</label>
+            <input type="text" id="cname" name="name" required />
+          </div>
+          <div class="field">
+            <label for="cemail">{c.emailLabel}</label>
+            <input type="email" id="cemail" name="email" required />
+          </div>
+          <div class="field">
+            <label for="cmsg">{c.messageLabel}</label>
+            <textarea id="cmsg" name="message" required></textarea>
+          </div>
+          <label class="check" style="margin-bottom:18px">
+            <input type="checkbox" id="cconsent" required />
+            {c.consent}
+          </label>
+          <button class="btn btn-neon" type="submit" id="csend">{c.send}</button>
+          <div id="cstate" class="notice" hidden style="margin-top:16px"></div>
+        </div>
+      </form>
+    </div>
+  </main>
+</Base>
+
+<script>
+  const form = document.getElementById('contactForm') as HTMLFormElement;
+  const state = document.getElementById('cstate') as HTMLElement;
+  const btn = document.getElementById('csend') as HTMLButtonElement;
+
+  const c = JSON.parse(document.getElementById('contactForm')!.dataset.copy ?? '{}');
+
+  form.addEventListener('submit', async (ev) => {
+    ev.preventDefault();
+    const name = (document.getElementById('cname') as HTMLInputElement).value.trim();
+    const email = (document.getElementById('cemail') as HTMLInputElement).value.trim();
+    const message = (document.getElementById('cmsg') as HTMLTextAreaElement).value.trim();
+    const consent = (document.getElementById('cconsent') as HTMLInputElement).checked;
+
+    state.hidden = false;
+    state.textContent = 'transmitting…';
+    state.classList.remove('err');
+    btn.disabled = true;
+
+    try {
+      const res = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ plugin: 'main', name, email, message, consent }),
+      });
+      const data: any = await res.json().catch(() => null);
+      if (res.ok && data?.ok) {
+        state.textContent = c.ok ?? 'Transmission received — we\'ll reply soon.';
+        form.reset();
+      } else {
+        state.textContent = data?.error ?? (c.err ?? 'Transmission failed.');
+        state.classList.add('err');
+      }
+    } catch {
+      state.textContent = c.err ?? 'Transmission failed.';
+      state.classList.add('err');
+    } finally {
+      btn.disabled = false;
+    }
+  });
+</script>

@@ -25,6 +25,7 @@ body{background:url(/img/noise.svg)}`),
 
 const entry: RegistryEntry = {
   slug: 'drift-a',
+  kind: 'experiment',
   title: 'Drift A',
   description: 'A drift experiment',
   tags: ['drift', 'graphics'],

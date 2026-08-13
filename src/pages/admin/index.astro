@@ -1,67 +1,190 @@
 ---
 import Base from '../../layouts/Base.astro';
+import site from '../../data/pilseros.json';
 import { BTN_DESIGNS } from '../../lib/types';
+
+const s = site.station;
 ---
 
 <Base
   full
   title="Registration Station"
-  description="The PilserLabs registration station — upload dists, register their SEO and theme."
+  description="The PilserLabs control master — manage every module, banner, SEO and theme, and arm the lab agent."
+  activeTab="station"
 >
   <main class="station width">
     <h2 style="margin-bottom:28px">
-      <span class="mono-label ">station&nbsp;/&nbsp;registrar</span>
+      <span class="mono-label">station&nbsp;/&nbsp;control master</span>
     </h2>
 
     <div id="gate" class="login-box terminal" hidden>
       <div class="tbar">
-        <i class="dot" style="background:#ff5f56"></i>
-        <i class="dot" style="background:#ffbd2e"></i>
-        <i class="dot" style="background:#27c93f"></i>
-        <span class="tlabel">ACCESS GATE</span>
+        <i class="dot" style="background:#3ee0ff"></i>
+        <i class="dot" style="background:#00d9ff"></i>
+        <i class="dot" style="background:#ffc24b"></i>
+        <span class="tlabel">{s.gateTitle}</span>
       </div>
       <div class="tbody">
         <p style="color:var(--ink-dim);font-size:13px;margin-top:0">
-          The registrar is admin-gated. Enter the lab access code.
+          {s.gateDesc}
         </p>
         <div class="field">
-          <label for="pw">access code</label>
+          <label for="pw">{s.gateLabel}</label>
           <input type="password" id="pw" autocomplete="current-password" />
         </div>
-        <button class="btn btn-volt" id="unlock">unlock</button>
+        <button class="btn btn-volt" id="unlock">{s.gateBtn}</button>
         <div id="gateErr" class="notice err" hidden style="margin-top:16px"></div>
       </div>
     </div>
 
     <div id="console" class="console" hidden>
       <div class="notice">
-        <i class="status-dot"></i>Console armed. Recent entries show below —
-        select an entry to <b>update</b> its dist + SEO, or <b>retire</b> it.
+        <i class="status-dot"></i>{s.consoleNotice}
+      </div>
+
+      <div class="terminal" style="margin-bottom:26px">
+        <div class="tbar">
+          <i class="dot" style="background:#3ee0ff"></i>
+          <i class="dot" style="background:#00d9ff"></i>
+          <i class="dot" style="background:#ffc24b"></i>
+          <span class="tlabel">{s.agentTitle}</span>
+        </div>
+        <div class="tbody">
+          <p style="color:var(--ink-dim);font-size:13px;margin-top:0;max-width:720px">
+            {s.agentDesc}
+          </p>
+          <div class="field-row">
+            <div class="field">
+              <label for="agentKey">{s.agentKeyLabel}</label>
+              <div class="agent-keyrow">
+                <input type="password" id="agentKey" readonly />
+                <button class="btn btn-soft" type="button" id="toggleKey">reveal</button>
+              </div>
+            </div>
+            <div class="field">
+              <label>&nbsp;</label>
+              <button class="btn btn-volt" type="button" id="copyGuide">
+                <svg width="13" height="13" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                  <rect x="5" y="5" width="9" height="9" rx="1" stroke="currentColor" stroke-width="1.4" />
+                  <path d="M3 11H2.5A1.5 1.5 0 0 1 1 9.5v-7A1.5 1.5 0 0 1 2.5 1h7A1.5 1.5 0 0 1 11 2.5V3" stroke="currentColor" stroke-width="1.4" />
+                </svg>
+                {s.agentGuideBtn}
+              </button>
+            </div>
+          </div>
+          <p style="color:var(--ink-faint);font-size:11.5px;margin-bottom:0;max-width:720px">
+            {s.agentGuideHint}
+          </p>
+          <p style="color:var(--ink-faint);font-size:11.5px;margin:10px 0 0;max-width:720px">
+            guide endpoint: <span class="accent">https://pilserlabs.com/api/agent</span> — the key above is the only auth the agent needs.
+          </p>
+        </div>
+      </div>
+
+      <div class="terminal" style="margin-bottom:26px">
+        <div class="tbar">
+          <i class="dot" style="background:#3ee0ff"></i>
+          <i class="dot" style="background:#00d9ff"></i>
+          <i class="dot" style="background:#ffc24b"></i>
+          <span class="tlabel">MAIL SERVER // EXTERNAL</span>
+        </div>
+        <div class="tbody">
+          <p style="color:var(--ink-dim);font-size:13px;margin-top:0;max-width:760px">
+            Point outbound mail at any external provider (Resend, Mailgun, SMTP…) — it
+            originates the email to <span class="accent">info@pilserlabs.com</span> and
+            Email Routing delivers it to your inbox. Delivery is logged with
+            <span class="accent">sent / rejected / failed</span> status in the activity panel.
+          </p>
+          <div class="field-row">
+            <div class="field">
+              <label for="m_provider">provider</label>
+              <select id="m_provider">
+                <option value="none">none (no external mail)</option>
+                <option value="api">http api (resend/mailgun…)</option>
+                <option value="smtp">smtp</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="m_to">to (override) — default info@pilserlabs.com</label>
+              <input type="text" id="m_to" placeholder="info@pilserlabs.com" />
+            </div>
+          </div>
+          <div id="m_api" class="field-row">
+            <div class="field">
+              <label for="m_apiUrl">api endpoint (POST json with from,to,subject,text,html)</label>
+              <input type="text" id="m_apiUrl" placeholder="https://api.resend.com/emails" />
+            </div>
+            <div class="field">
+              <label for="m_apiKey">api key (Bearer)</label>
+              <input type="password" id="m_apiKey" />
+            </div>
+          </div>
+          <div class="field-row">
+            <div class="field" id="m_apiFromWrap">
+              <label for="m_apiFrom">from address</label>
+              <input type="text" id="m_apiFrom" placeholder="PilsérLabs <info@pilserlabs.com>" />
+            </div>
+            <div class="field">
+              <label for="m_from">fallback from email</label>
+              <input type="text" id="m_from" placeholder="info@pilserlabs.com" />
+            </div>
+          </div>
+          <div id="m_smtp" class="field-row">
+            <div class="field">
+              <label for="m_smtpHost">smtp host</label>
+              <input type="text" id="m_smtpHost" placeholder="smtp.example.com" />
+            </div>
+            <div class="field">
+              <label for="m_smtpPort">port (465 implicit tls / 587 starttls)</label>
+              <input type="number" id="m_smtpPort" placeholder="587" />
+            </div>
+          </div>
+          <div id="m_smtp2" class="field-row">
+            <div class="field">
+              <label for="m_smtpUser">smtp username</label>
+              <input type="text" id="m_smtpUser" />
+            </div>
+            <div class="field">
+              <label for="m_smtpPass">smtp password</label>
+              <input type="password" id="m_smtpPass" />
+            </div>
+          </div>
+          <label class="check" id="m_smtpSecureWrap" style="margin-bottom:18px">
+            <input type="checkbox" id="m_smtpSecure" />
+            implicit TLS (465)
+          </label>
+          <div class="form-actions" style="margin-top:0">
+            <button class="btn btn-volt" type="button" id="mSave">save config</button>
+            <button class="btn btn-danger" type="button" id="mClear">disable / clear</button>
+            <span class="mono-label" id="mStatus" style="align-self:center"></span>
+          </div>
+        </div>
       </div>
 
       <div class="terminal">
         <div class="tbar">
-          <i class="dot" style="background:#ff5f56"></i>
-          <i class="dot" style="background:#ffbd2e"></i>
-          <i class="dot" style="background:#27c93f"></i>
-          <span class="tlabel">REGISTER · UPDATE DIST</span>
+          <i class="dot" style="background:#3ee0ff"></i>
+          <i class="dot" style="background:#00d9ff"></i>
+          <i class="dot" style="background:#ffc24b"></i>
+          <span class="tlabel">{s.controlsTitle}</span>
         </div>
         <div class="tbody">
           <form id="regForm" enctype="multipart/form-data">
-            <div class="field">
-              <label for="f_file">dist archive (.zip of built html/css/js)</label>
-              <div class="dropzone" id="dz" role="button" tabindex="0">
-                <span id="dzLabel">drop the dist zip here, or click to browse</span>
-                <input type="file" id="f_file" accept=".zip,application/zip" hidden />
-              </div>
-              <div id="themePreview" class="swatches" hidden></div>
-            </div>
-
             <div class="field-row">
               <div class="field">
                 <label for="f_slug">slug (url path) — lowercase, 2-49</label>
-                <input type="text" id="f_slug" pattern="[a-z0-9](?:[a-z0-9-]{0,47})" />
+                <input type="text" id="f_slug" pattern="[a-z0-9](?:[a-z0-9-]{0,47})" required />
               </div>
+              <div class="field">
+                <label for="f_kind">kind</label>
+                <select id="f_kind">
+                  <option value="experiment">experiment</option>
+                  <option value="project">project</option>
+                  <option value="paper">paper</option>
+                </select>
+              </div>
+            </div>
+            <div class="field-row">
               <div class="field">
                 <label for="f_status">status</label>
                 <select id="f_status">
@@ -69,26 +192,6 @@ import { BTN_DESIGNS } from '../../lib/types';
                   <option value="draft">draft (hidden from feed)</option>
                   <option value="archived">archived</option>
                 </select>
-              </div>
-            </div>
-
-            <div class="field">
-              <label for="f_title">banner heading</label>
-              <input type="text" id="f_title" />
-            </div>
-            <div class="field">
-              <label for="f_desc">short description (shown on the feed card)</label>
-              <textarea id="f_desc"></textarea>
-            </div>
-            <div class="field">
-              <label for="f_tags">tags (comma separated)</label>
-              <input type="text" id="f_tags" placeholder="research, interactive, hand-built" />
-            </div>
-
-            <div class="field-row">
-              <div class="field">
-                <label for="f_btnLabel">enter-button label</label>
-                <input type="text" id="f_btnLabel" placeholder="open experiment" />
               </div>
               <div class="field">
                 <label for="f_btnDesign">enter-button design</label>
@@ -99,11 +202,28 @@ import { BTN_DESIGNS } from '../../lib/types';
             </div>
 
             <div class="field">
-              <label for="f_theme">theme override (optional JSON array of hex colors)</label>
-              <textarea class="code" id="f_theme" placeholder='["#c9ff3d","#3af5c4","#0a0f16"]'></textarea>
-              <small style="color:var(--ink-faint);font-size:11px">
-                leave empty to auto-extract from the dist CSS.
-              </small>
+              <label for="f_title">banner heading / title</label>
+              <input type="text" id="f_title" required />
+            </div>
+            <div class="field">
+              <label for="f_desc">description (shown on the card)</label>
+              <textarea id="f_desc"></textarea>
+            </div>
+            <div class="field">
+              <label for="f_tags">tags (comma separated)</label>
+              <input type="text" id="f_tags" placeholder="agents, serverless, distributed" />
+            </div>
+
+            <div class="field-row">
+              <div class="field">
+                <label for="f_btnLabel">enter-button label</label>
+                <input type="text" id="f_btnLabel" placeholder="open module" />
+              </div>
+              <div class="field">
+                <label for="f_theme">theme colors (JSON hex array — empty = auto)</label>
+                <textarea class="code" id="f_theme" placeholder='["#3ee0ff","#00d9ff","#03050b"]'></textarea>
+                <div id="themePreview" class="swatches" hidden style="margin-top:6px"></div>
+              </div>
             </div>
 
             <div class="field-row">
@@ -116,27 +236,52 @@ import { BTN_DESIGNS } from '../../lib/types';
                 <input type="text" id="f_seoKeywords" />
               </div>
             </div>
-            <div class="field">
-              <label for="f_seoDesc">seo · description</label>
-              <textarea id="f_seoDesc"></textarea>
-            </div>
             <div class="field-row">
               <div class="field">
-                <label for="f_og">og / banner image (optional)</label>
-                <input type="file" id="f_og" accept="image/*" />
+                <label for="f_seoDesc">seo · description</label>
+                <textarea id="f_seoDesc"></textarea>
               </div>
               <div class="field">
-                <span class="mono-label" style="margin-bottom:8px">indexing</span>
+                <label for="f_seoIndex">seo · indexing</label>
                 <label class="check">
                   <input type="checkbox" id="f_seoIndex" checked />
-                  allow search engines to index this page
+                  allow search engines to index
                 </label>
               </div>
             </div>
 
+            <div class="field-row">
+              <div class="field">
+                <label for="f_bannerFile">banner image (card / og — upload)</label>
+                <input type="file" id="f_bannerFile" accept="image/*" />
+                <small style="color:var(--ink-faint);font-size:11px" id="bannerCur">no banner set</small>
+              </div>
+              <div class="field">
+                <label for="f_bannerUrl">banner url (remote, optional)</label>
+                <input type="url" id="f_bannerUrl" placeholder="https://…/banner.png" />
+              </div>
+            </div>
+            <div id="bannerPreviewWrap" hidden style="margin-bottom:18px">
+              <span class="mono-label" style="display:block;margin-bottom:6px">current banner</span>
+              <img id="bannerPreview" alt="banner preview" style="max-width:100%;max-height:140px;border:1px solid var(--line-2)" />
+            </div>
+            <label class="check" style="margin-bottom:18px">
+              <input type="checkbox" id="f_clearBanner" />
+              clear current banner
+            </label>
+
+            <div class="field">
+              <label for="f_file">dist archive (.zip of built html/css/js) — <b>required for new modules, optional to replace</b></label>
+              <div class="dropzone" id="dz" role="button" tabindex="0">
+                <span id="dzLabel">drop the dist zip here, or click to browse</span>
+                <input type="file" id="f_file" accept=".zip,application/zip" hidden />
+              </div>
+            </div>
+
             <div class="form-actions">
-              <button type="submit" class="btn btn-volt" id="submitBtn">register / update</button>
+              <button type="submit" class="btn btn-volt" id="submitBtn">create / update</button>
               <button type="button" class="btn btn-soft" id="resetBtn">clear form</button>
+              <span id="editMode" class="mono-label" hidden style="align-self:center">editing…</span>
             </div>
             <div id="formState" class="notice" style="margin-top:18px" hidden></div>
           </form>
@@ -145,22 +290,149 @@ import { BTN_DESIGNS } from '../../lib/types';
 
       <div class="terminal" style="margin-top:26px">
         <div class="tbar">
-          <i class="dot" style="background:#ff5f56"></i>
-          <i class="dot" style="background:#ffbd2e"></i>
-          <i class="dot" style="background:#27c93f"></i>
-          <span class="tlabel">REGISTRY</span>
+          <i class="dot" style="background:#3ee0ff"></i>
+          <i class="dot" style="background:#00d9ff"></i>
+          <i class="dot" style="background:#ffc24b"></i>
+          <span class="tlabel">{s.listTitle}</span>
         </div>
         <div class="tbody">
+          <div class="filterbar">
+            <div class="chips" id="filterChips"></div>
+            <input type="search" id="searchBox" placeholder="search title / slug / tags…" style="max-width:240px" />
+          </div>
           <div class="entry-list" id="entries"></div>
           <div id="listState" class="notice" hidden></div>
+        </div>
+      </div>
+      <div class="terminal" style="margin-top:26px">
+        <div class="tbar">
+          <i class="dot" style="background:#3ee0ff"></i>
+          <i class="dot" style="background:#00d9ff"></i>
+          <i class="dot" style="background:#ffc24b"></i>
+          <span class="tlabel">ACTIVITY // MAIL</span>
+        </div>
+        <div class="tbody">
+          <p style="color:var(--ink-faint);font-size:11.5px;margin-top:0">
+            inbound mail to <span class="accent">info@pilserlabs.com</span> is
+            logged here and forwarded to your inbox via Cloudflare Email Routing —
+            free. Contact-form submissions are logged with their delivery status.
+          </p>
+          <div id="inbox" style="display:grid;gap:10px"></div>
+          <div id="inboxState" class="notice" hidden></div>
         </div>
       </div>
     </div>
   </main>
 </Base>
 
+<style>
+  .agent-keyrow {
+    display: flex;
+    gap: 8px;
+  }
+  .agent-keyrow input {
+    flex: 1;
+  }
+  .agent-keyrow .btn {
+    padding: 10px 14px;
+    white-space: nowrap;
+  }
+  .filterbar {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+  }
+  .chips {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .chip {
+    font-family: var(--mono);
+    font-size: 11.5px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 6px 12px;
+    border: 1px solid var(--line-2);
+    color: var(--ink-dim);
+    background: transparent;
+    cursor: pointer;
+    transition: all 0.18s;
+  }
+  .chip.on {
+    border-color: var(--neon);
+    color: var(--neon);
+    background: rgba(62, 224, 255, 0.08);
+    box-shadow: var(--glow-soft);
+  }
+  .badge {
+    display: inline-block;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 2px 7px;
+    border: 1px solid var(--line-2);
+    color: var(--ink-dim);
+    margin-left: 8px;
+  }
+  .badge.k-project {
+    border-color: rgba(0, 217, 255, 0.6);
+    color: var(--cyan);
+  }
+  .badge.k-paper {
+    border-color: rgba(255, 194, 75, 0.6);
+    color: var(--amber);
+  }
+  .badge.st-draft {
+    border-color: rgba(255, 255, 255, 0.2);
+    color: var(--ink-faint);
+  }
+  .badge.st-archived {
+    border-color: rgba(255, 77, 109, 0.6);
+    color: var(--rose);
+  }
+  .badge.st-ok {
+    border-color: rgba(58, 245, 196, 0.6);
+    color: var(--teal, #3af5c4);
+  }
+  .badge.st-err {
+    border-color: rgba(255, 77, 109, 0.6);
+    color: var(--rose);
+  }
+  .badge.st-mid {
+    border-color: rgba(255, 194, 75, 0.6);
+    color: var(--amber);
+  }
+  .entry-row .name {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .entry-thumb {
+    width: 64px;
+    height: 36px;
+    object-fit: cover;
+    border: 1px solid var(--line-2);
+    border-radius: 2px;
+    flex-shrink: 0;
+  }
+  .entry-thumb.none {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    background: var(--bg-2);
+  }
+</style>
+
 <script>
-  const api = async (url: string, init?: RequestInit): Promise<{ ok: boolean; status: number; data: any }> => {
+  const byId = (id: string): any => document.getElementById(id);
+  const api = async (url: string, init?: RequestInit): Promise<any> => {
     const res = await fetch(url, init);
     let data = null;
     try {
@@ -171,39 +443,52 @@ import { BTN_DESIGNS } from '../../lib/types';
     return { ok: res.ok, status: res.status, data };
   };
 
-  const byId = (id: string): any => document.getElementById(id);
-  const show = (id: string, on: boolean) => {
-    byId(id).hidden = !on;
-  };
+  let AGENT = { key: '', guide: '' };
+  let FEED: any[] = [];
+  let filter = 'all';
+  let search = '';
 
-  const state = (msg: string, isErr = false) => {
+  const esc = (str: any): string => String(str ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]!));
+
+  function state(msg: string, isErr = false) {
     const el = byId('formState');
     el.hidden = false;
     el.textContent = msg;
     el.classList.toggle('err', isErr);
-  };
+  }
 
-  const listState = (msg: string, isErr = false) => {
+  function listState(msg: string | null, isErr = false) {
     const el = byId('listState');
+    if (msg === null) {
+      el.hidden = true;
+      return;
+    }
     el.hidden = false;
     el.textContent = msg;
     el.classList.toggle('err', isErr);
-  };
-
-  const esc = (s: string) =>
-    s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]!));
+  }
 
   async function bootstrap() {
     const a = await api('/api/auth');
-    show('gate', !a.data?.admin);
-    show('console', a.data?.admin === true);
+    showGate(!a.data?.admin);
     if (a.data?.admin) {
+      const ag = await api('/api/auth?action=agent');
+      AGENT.key = ag.data?.agentKey ?? '';
+      AGENT.guide = ag.data?.guide ?? '';
+      byId('agentKey').value = AGENT.key;
+      loadInbox();
+      loadMailConfig();
       loadEntries();
     }
   }
 
+  function showGate(on: boolean) {
+    byId('gate').hidden = !on;
+    byId('console').hidden = on;
+  }
+
   async function login() {
-    const pw = (byId('pw') as HTMLInputElement).value;
+    const pw = byId('pw').value;
     const r = await api('/api/auth', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
@@ -215,48 +500,83 @@ import { BTN_DESIGNS } from '../../lib/types';
       e.textContent = r.data?.error ?? 'access denied';
       return;
     }
-    show('gate', false);
-    show('console', true);
+    showGate(false);
+    const ag = await api('/api/auth?action=agent');
+    AGENT.key = ag.data?.agentKey ?? '';
+    loadInbox();
+    loadMailConfig();
+    loadInbox();
+    byId('agentKey').value = AGENT.key;
     loadEntries();
   }
 
-  function loadEntries() {
-    api('/api/dists?action=feed').then((r) => {
-      const list = byId('entries');
-      list.innerHTML = '';
-      if (!r.ok || !r.data?.feed?.length) {
-        listState('Registry is empty — mount the first experiment.');
-        return;
-      }
-      listState('', false);
-      listState('', true);
+  async function loadEntries() {
+    const r = await api('/api/dists?action=feed');
+    FEED = Array.isArray(r.data?.feed) ? r.data.feed : [];
+    renderFilters();
+    renderList();
+    listState(FEED.length === 0 ? 'Registry is empty — create the first module.' : null);
+  }
 
-      (r.data.feed as any[]).forEach((e: any) => {
-        const row = document.createElement('div');
-        row.className = 'entry-row';
-        const colors = (e.theme?.colors ?? []).map(
-          (c: string) => `<i style="background:${c}"></i>`,
-        ).join('');
-        row.innerHTML = `
-          <div class="meta">
-            <div class="swatch">${colors}</div>
-            <div>
-              <div class="name">${esc(e.title)}</div>
-              <div class="slug">/p/${esc(e.slug)}/ · ${esc(e.status)}</div>
-            </div>
-          </div>
-          <div class="ops">
-            <button class="btn btn-soft" data-open="/p/${esc(e.slug)}/">open</button>
-            <button class="btn btn-soft" data-edit="${esc(e.slug)}">update</button>
-            <button class="btn btn-danger" data-del="${esc(e.slug)}">retire</button>
-          </div>`;
-        row.querySelector('[data-open]')!.addEventListener('click', () => {
-          window.open(row.querySelector('[data-open]')!.getAttribute('data-open')!, '_blank');
-        });
-        row.querySelector('[data-edit]')!.addEventListener('click', () => fillForm(e.slug));
-        row.querySelector('[data-del]')!.addEventListener('click', () => removeEntry(e.slug, e.title));
-        list.appendChild(row);
+  function renderFilters() {
+    const kinds = ['all', 'experiment', 'project', 'paper'];
+    byId('filterChips').innerHTML = kinds
+      .map((k) => `<button class="chip${filter === k ? ' on' : ''}" data-k="${k}">${k}</button>`)
+      .join('');
+    byId('filterChips').querySelectorAll('.chip').forEach((c: HTMLElement) => {
+      c.addEventListener('click', () => {
+        filter = c.dataset.k || 'all';
+        renderFilters();
+        renderList();
       });
+    });
+  }
+
+  function visible() {
+    const q = search.toLowerCase();
+    return FEED.filter((e) => {
+      if (filter !== 'all' && e.kind !== filter) return false;
+      if (!q) return true;
+      return `${e.slug} ${e.title} ${(e.tags || []).join(' ')}`.toLowerCase().includes(q);
+    });
+  }
+
+  function renderList() {
+    const list = byId('entries');
+    const items = visible();
+    list.innerHTML = '';
+    if (items.length === 0) {
+      listState('No modules match.', false);
+      return;
+    }
+    listState(null);
+    items.forEach((e: any) => {
+      const colors = (e.theme?.colors ?? []).map((c: string) => `<i style="background:${c}"></i>`).join('');
+      const kindBadge = e.kind === 'project' ? 'k-project' : e.kind === 'paper' ? 'k-paper' : '';
+      const stBadge = e.status === 'draft' ? 'st-draft' : e.status === 'archived' ? 'st-archived' : '';
+      const banner = e.seo?.ogImage
+        ? `<img class="entry-thumb" src="${esc(e.seo.ogImage.startsWith('/') ? `/p/${e.slug}${e.seo.ogImage}` : e.seo.ogImage)}" alt="" loading="lazy" />`
+        : `<span class="entry-thumb none">no banner</span>`;
+      const row = document.createElement('div');
+      row.className = 'entry-row';
+      row.innerHTML = `
+        <div class="meta">
+          ${banner}
+          <div class="swatch">${colors}</div>
+          <div>
+            <div class="name">${esc(e.title)}<span class="badge ${kindBadge}">${esc(e.kind)}</span><span class="badge ${stBadge}">${esc(e.status)}</span></div>
+            <div class="slug">/${esc(e.slug)}/ · ${(e.tags || []).join(', ')}</div>
+          </div>
+        </div>
+        <div class="ops">
+          <button class="btn btn-soft" data-open="/view/${esc(e.slug)}/">open</button>
+          <button class="btn btn-soft" data-edit="${esc(e.slug)}">edit</button>
+          <button class="btn btn-danger" data-del="${esc(e.slug)}">delete</button>
+        </div>`;
+      row.querySelector('[data-open]')!.addEventListener('click', () => window.open(`/view/${e.slug}/`, '_blank'));
+      row.querySelector('[data-edit]')!.addEventListener('click', () => fillForm(e.slug));
+      row.querySelector('[data-del]')!.addEventListener('click', () => removeEntry(e.slug, e.title));
+      list.appendChild(row);
     });
   }
 
@@ -264,43 +584,61 @@ import { BTN_DESIGNS } from '../../lib/types';
     const r = await api(`/api/dists?slug=${encodeURIComponent(slug)}`);
     if (!r.ok || !r.data?.entry) return;
     const e = r.data.entry;
-    (byId('f_slug') as HTMLInputElement).value = e.slug;
-    (byId('f_title') as HTMLInputElement).value = e.title;
-    (byId('f_desc') as HTMLTextAreaElement).value = e.description;
-    (byId('f_tags') as HTMLInputElement).value = (e.tags ?? []).join(', ');
-    (byId('f_btnLabel') as HTMLInputElement).value = e.button?.label ?? '';
-    (byId('f_btnDesign') as HTMLSelectElement).value = e.button?.design ?? 'minimal';
-    (byId('f_status') as HTMLSelectElement).value = e.status ?? 'live';
-    (byId('f_theme') as HTMLTextAreaElement).value = JSON.stringify(e.theme?.colors ?? []);
-    (byId('f_seoTitle') as HTMLInputElement).value = e.seo?.title ?? '';
-    (byId('f_seoDesc') as HTMLTextAreaElement).value = e.seo?.description ?? '';
-    (byId('f_seoKeywords') as HTMLInputElement).value = e.seo?.keywords ?? '';
-    (byId('f_seoIndex') as HTMLInputElement).checked = e.seo?.robotsIndex !== false;
-    (byId('f_file') as HTMLInputElement).value = '';
-    (byId('f_og') as HTMLInputElement).value = '';
+    byId('f_slug').value = e.slug;
+    byId('f_kind').value = e.kind ?? 'experiment';
+    byId('f_status').value = e.status ?? 'live';
+    byId('f_title').value = e.title;
+    byId('f_desc').value = e.description ?? '';
+    byId('f_tags').value = (e.tags ?? []).join(', ');
+    byId('f_btnLabel').value = e.button?.label ?? '';
+    byId('f_btnDesign').value = e.button?.design ?? 'minimal';
+    byId('f_theme').value = JSON.stringify(e.theme?.colors ?? []);
+    themePreview(e.theme?.colors ?? []);
+    byId('f_seoTitle').value = e.seo?.title ?? '';
+    byId('f_seoDesc').value = e.seo?.description ?? '';
+    byId('f_seoKeywords').value = e.seo?.keywords ?? '';
+    byId('f_seoIndex')?.checked !== undefined && (byId('f_seoIndex')!.checked = e.seo?.robotsIndex !== false);
+    byId('f_bannerUrl').value = /^https?:\/\//i.test(e.seo?.ogImage ?? '') ? e.seo.ogImage : '';
+    byId('f_clearBanner').checked = false;
+    byId('f_bannerFile').value = '';
+    byId('f_file').value = '';
+    byId('bannerCur').textContent = e.seo?.ogImage ? `banner: ${e.seo.ogImage}` : 'no banner set';
+    const bp = byId('bannerPreview');
+    const bw = byId('bannerPreviewWrap');
+    if (e.seo?.ogImage) {
+      bp.src = e.seo.ogImage.startsWith('/') ? `/p/${e.slug}${e.seo.ogImage}` : e.seo.ogImage;
+      bw.hidden = false;
+    } else {
+      bw.hidden = true;
+    }
+    byId('editMode').hidden = false;
+    byId('editMode').textContent = `editing /${e.slug}/`;
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   async function removeEntry(slug: string, title: string) {
-    if (!confirm(`Retire "${title}" (/p/${slug}/)? The dist and SEO will be removed.`)) return;
+    if (!confirm(`Delete "${title}" (/p/${slug}/)? Dist, banner and SEO are removed.`)) return;
     const r = await fetch('/api/dists', {
       method: 'DELETE',
       headers: { 'content-type': 'application/x-www-form-urlencoded' },
       body: `slug=${encodeURIComponent(slug)}`,
     });
     if (r.ok) loadEntries();
-    else state('retire failed', true);
+    else state('delete failed', true);
   }
 
-  function themePreview(themeColors: string[]) {
+  function themePreview(colors: string[]) {
     const box = byId('themePreview');
-    box.hidden = themeColors.length === 0;
-    box.innerHTML = themeColors
-      .map(
-        (c) =>
-          `<i style="background:${/^#[0-9a-f]{6}$/i.test(c) ? c : '#999'}"></i>`,
-      )
-      .join('');
+    box.hidden = colors.length === 0;
+    box.innerHTML = colors.map((c) => `<i style="background:${/^#[0-9a-f]{6}$/i.test(c) ? c : '#999'}"></i>`).join('');
+  }
+
+  function copyGuide() {
+    const text = `PILSERLABS — AGENT ACCESS\nKEY: ${AGENT.key}\n\n${AGENT.guide}`;
+    navigator.clipboard
+      .writeText(text)
+      .then(() => state('agent guide + key copied — hand it to the agent.', false))
+      .catch(() => state('copy failed — select the key manually.', true));
   }
 
   function setupDrag() {
@@ -330,28 +668,11 @@ import { BTN_DESIGNS } from '../../lib/types';
     file.addEventListener('change', fileLabel);
     function fileLabel() {
       const f = file.files?.[0];
-      byId('dzLabel').textContent = f
-        ? `${f.name} (${Math.round(f.size / 1024)}KB) — ready`
-        : 'drop the dist zip here, or click to browse';
-      tryThemePreview();
+      byId('dzLabel').textContent = f ? `${f.name} (${Math.round(f.size / 1024)}KB) — ready` : 'drop the dist zip here, or click to browse';
     }
-    async function tryThemePreview() {
-      const f = file.files?.[0];
-      if (!f) return;
-      if (!f.name.endsWith('.zip')) return;
-      let parsed: string[] | null = null;
+    byId('f_theme').addEventListener('input', () => {
       try {
-        const txt = (byId('f_theme') as HTMLTextAreaElement).value.trim();
-        if (txt) parsed = JSON.parse(txt);
-      } catch {
-        /* noop */
-      }
-      if (parsed?.length) themePreview(parsed);
-      else themePreview([]);
-    }
-    (byId('f_theme') as HTMLTextAreaElement).addEventListener('input', () => {
-      try {
-        const a = JSON.parse((byId('f_theme') as HTMLTextAreaElement).value);
+        const a = JSON.parse(byId('f_theme').value);
         if (Array.isArray(a)) themePreview(a);
       } catch {
         themePreview([]);
@@ -359,50 +680,180 @@ import { BTN_DESIGNS } from '../../lib/types';
     });
   }
 
-  function bindForm() {
-    (byId('regForm') as HTMLFormElement).addEventListener('submit', async (ev) => {
-      ev.preventDefault();
-      const fd = new FormData(byId('regForm') as HTMLFormElement);
-      const file = (byId('f_file') as HTMLInputElement).files?.[0];
-      if (!file) {
-        state('choose a dist zip first', true);
-        return;
-      }
-      const og = (byId('f_og') as HTMLInputElement).files?.[0];
-      const themeRaw = (byId('f_theme') as HTMLTextAreaElement).value.trim();
-      fd.set('file', file);
-      if (og) fd.set('ogImage', og);
-      if (themeRaw) fd.set('themeColors', themeRaw);
-      fd.set('seoIndex', (byId('f_seoIndex') as HTMLInputElement).checked ? 'true' : 'false');
-      fd.set('tags', (byId('f_tags') as HTMLInputElement).value);
-      (byId('submitBtn') as HTMLButtonElement).disabled = true;
+  function statusBadge(s: string): string {
+    const cls =
+      s === 'forwarded' || s === 'email-sent' || s === 'delivered'
+        ? 'st-ok'
+        : s === 'email-failed' || s === 'failed'
+          ? 'st-err'
+          : 'st-mid';
+    return `<span class="badge ${cls}">${esc(s)}</span>`;
+  }
 
-      const res = await fetch('/api/dists', {
-        method: 'POST',
-        credentials: 'include',
-        body: fd,
-      });
-      (byId('submitBtn') as HTMLButtonElement).disabled = false;
-      const data: any = await res.json().catch(() => null);
-      if (res.ok) {
-        state(`mounted /p/${data?.entry?.slug}/ — ${res.status === 201 ? 'registered' : 'updated'} (${file.name}).`);
-        loadEntries();
-      } else {
-        state(data?.error ?? 'registration failed', true);
-      }
-    });
-    (byId('resetBtn') as HTMLButtonElement).addEventListener('click', () => {
-      (byId('regForm') as HTMLFormElement).reset();
-      state('form cleared', false);
-      byId('formState').hidden = true;
-      themePreview([]);
+  async function loadInbox() {
+    const r = await api('/api/activity');
+    const box = byId('inbox');
+    const st = byId('inboxState');
+    if (!r.ok || !Array.isArray(r.data?.activity)) {
+      st.hidden = false;
+      st.textContent = 'activity log unavailable';
+      return;
+    }
+    const rows = r.data.activity;
+    box.innerHTML = '';
+    if (rows.length === 0) {
+      st.hidden = false;
+      st.textContent = 'no mail activity yet — email info@pilserlabs.com to test';
+      return;
+    }
+    st.hidden = true;
+    rows.slice(0, 50).forEach((c: any) => {
+      const dir = c.direction === 'in' ? 'IN' : 'OUT';
+      const el = document.createElement('div');
+      el.className = 'entry-row';
+      el.style.flexDirection = 'column';
+      el.style.alignItems = 'stretch';
+      el.innerHTML = `
+        <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center">
+          <span style="font-weight:600">
+            <span class="badge" style="color:var(--neon);border-color:rgba(62,224,255,.5)">${dir}</span>
+            ${esc(c.from_addr || '—')} → ${esc(c.to_addr || '—')}
+          </span>
+          <span class="slug">${esc(c.created_at)} ${statusBadge(c.status)}</span>
+        </div>
+        ${c.subject ? `<div style="color:var(--ink);font-size:13px;margin-top:4px">${esc(c.subject)}</div>` : ''}
+        ${c.body ? `<div style="color:var(--ink-dim);font-size:12.5px;margin-top:2px;white-space:pre-wrap;max-height:64px;overflow:auto">${esc(c.body)}</div>` : ''}`;
+      box.appendChild(el);
     });
   }
 
-  (byId('pw') as HTMLInputElement).addEventListener('keydown', (ev) => {
+  function mailUIVisibility() {
+    const p = byId('m_provider').value;
+    byId('m_api').hidden = p !== 'api';
+    byId('m_apiFromWrap').hidden = p !== 'api';
+    byId('m_smtp').hidden = p !== 'smtp';
+    byId('m_smtp2').hidden = p !== 'smtp';
+    byId('m_smtpSecureWrap').hidden = p !== 'smtp';
+  }
+
+  async function loadMailConfig() {
+    const r = await api('/api/mailconfig');
+    if (!r.ok || !r.data?.configured || !r.data?.config) {
+      byId('mStatus').textContent = 'no external mail server configured';
+      mailUIVisibility();
+      return;
+    }
+    const c = r.data.config;
+    byId('m_provider').value = c.provider || 'none';
+    byId('m_apiUrl').value = c.apiUrl || '';
+    byId('m_apiKey').value = '';
+    byId('m_apiFrom').value = c.apiFrom || '';
+    byId('m_from').value = c.fromEmail || '';
+    byId('m_to').value = c.toEmail || '';
+    byId('m_smtpHost').value = c.smtpHost || '';
+    byId('m_smtpPort').value = c.smtpPort ? String(c.smtpPort) : '';
+    byId('m_smtpUser').value = c.smtpUser || '';
+    byId('m_smtpPass').value = '';
+    byId('m_smtpSecure').checked = !!c.smtpSecure;
+    byId('mStatus').textContent = `configured · ${c.provider}`;
+    mailUIVisibility();
+  }
+
+  function bindMail() {
+    byId('m_provider').addEventListener('change', mailUIVisibility);
+    byId('mSave').addEventListener('click', async () => {
+      const body: any = {
+        provider: byId('m_provider').value,
+        apiUrl: byId('m_apiUrl').value.trim(),
+        apiKey: byId('m_apiKey').value.trim(),
+        apiFrom: byId('m_apiFrom').value.trim(),
+        fromEmail: byId('m_from').value.trim(),
+        toEmail: byId('m_to').value.trim(),
+        smtpHost: byId('m_smtpHost').value.trim(),
+        smtpPort: Number(byId('m_smtpPort').value) || undefined,
+        smtpUser: byId('m_smtpUser').value.trim(),
+        smtpPass: byId('m_smtpPass').value.trim(),
+        smtpSecure: byId('m_smtpSecure').checked,
+      };
+      const res = await fetch('/api/mailconfig', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      const data: any = await res.json().catch(() => null);
+      byId('mStatus').textContent = res.ok ? 'saved' : (data?.error ?? 'save failed');
+      byId('mStatus').style.color = res.ok ? 'var(--neon)' : 'var(--rose)';
+      if (res.ok) loadMailConfig();
+    });
+    byId('mClear').addEventListener('click', async () => {
+      const res = await fetch('/api/mailconfig', { method: 'DELETE', credentials: 'include' });
+      byId('mStatus').textContent = res.ok ? 'disabled' : 'clear failed';
+      byId('mStatus').style.color = res.ok ? 'var(--ink-dim)' : 'var(--rose)';
+      if (res.ok) loadMailConfig();
+    });
+  }
+
+  function bindForm() {
+    byId('regForm').addEventListener('submit', async (ev: Event) => {
+      ev.preventDefault();
+      const fd = new FormData(byId('regForm'));
+      const file = (byId('f_file') as HTMLInputElement).files?.[0];
+      const banner = (byId('f_bannerFile') as HTMLInputElement).files?.[0];
+      const slug = byId('f_slug').value.trim().toLowerCase();
+      const isNew = !FEED.some((e) => e.slug === slug);
+      if (isNew && !file) {
+        state('a dist zip is required to create a new module', true);
+        return;
+      }
+      fd.set('seoIndex', byId('f_seoIndex') ? (byId('f_seoIndex').checked ? 'true' : 'false') : 'true');
+      fd.set('clearBanner', byId('f_clearBanner').checked ? 'true' : 'false');
+      if (banner) fd.set('bannerFile', banner);
+      if (file) fd.set('file', file);
+      const btn = byId('submitBtn');
+      btn.disabled = true;
+      const res = await fetch('/api/dists', { method: 'POST', credentials: 'include', body: fd });
+      btn.disabled = false;
+      const data: any = await res.json().catch(() => null);
+      if (res.ok) {
+        state(`module /${data?.entry?.slug}/ ${res.status === 201 ? 'created' : 'updated'} — ${file ? 'dist replaced.' : 'metadata saved.'}`);
+        byId('editMode').hidden = true;
+        if (data?.entry?.seo?.ogImage) {
+          byId('bannerPreview').src = data.entry.seo.ogImage.startsWith('/') ? `/p/${data.entry.slug}${data.entry.seo.ogImage}` : data.entry.seo.ogImage;
+          byId('bannerPreviewWrap').hidden = false;
+          byId('bannerCur').textContent = `banner: ${data.entry.seo.ogImage}`;
+        }
+        loadEntries();
+      } else {
+        state(data?.error ?? 'operation failed', true);
+      }
+    });
+    byId('resetBtn').addEventListener('click', () => {
+      byId('regForm').reset();
+      byId('formState').hidden = true;
+      byId('editMode').hidden = true;
+      themePreview([]);
+      byId('bannerCur').textContent = 'no banner set';
+      byId('dzLabel').textContent = 'drop the dist zip here, or click to browse';
+    });
+    byId('searchBox').addEventListener('input', (ev: Event) => {
+      search = (ev.target as HTMLInputElement).value.trim();
+      renderList();
+    });
+    byId('toggleKey').addEventListener('click', () => {
+      const k = byId('agentKey');
+      const show = k.type === 'password';
+      k.type = show ? 'text' : 'password';
+      byId('toggleKey').textContent = show ? 'hide' : 'reveal';
+    });
+    byId('copyGuide').addEventListener('click', copyGuide);
+  }
+
+  byId('pw').addEventListener('keydown', (ev: KeyboardEvent) => {
     if (ev.key === 'Enter') login();
   });
   byId('unlock').addEventListener('click', login);
+  bindMail();
   bindForm();
   setupDrag();
   bootstrap();

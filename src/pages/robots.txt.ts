@@ -10,6 +10,7 @@ export async function GET(_context: APIContext): Promise<Response> {
     'User-agent: *',
     'Allow: /',
     'Disallow: /admin',
+    'Disallow: /view/',
     '',
     `Sitemap: ${site}/sitemap.xml`,
     '',

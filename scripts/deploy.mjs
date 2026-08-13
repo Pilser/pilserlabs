@@ -1,4 +1,4 @@
-import { readFileSync, readdirSync, statSync, existsSync } from 'node:fs';
+import { readFileSync, writeFileSync, readdirSync, statSync, existsSync } from 'node:fs';
 import { join, extname, relative, sep } from 'node:path';
 import { hash } from '../node_modules/blake3-wasm/dist/index.js';
 
@@ -23,28 +23,65 @@ function token() {
 }
 const TOKEN = process.env.PL_TOKEN ?? token();
 
+async function refreshToken() {
+  const tomlPath = join(HOME, '.config/.wrangler/config/default.toml');
+  const cfg = readFileSync(tomlPath, 'utf-8');
+  const rt = cfg.match(/refresh_token = "([^"]+)"/)?.[1];
+  if (!rt) throw new Error('No refresh_token found');
+  const res = await fetch('https://dash.cloudflare.com/oauth2/token', {
+    method: 'POST',
+    headers: { 'content-type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({
+      grant_type: 'refresh_token',
+      client_id: '54d11594-84e4-41aa-b438-e81b8fa78ee7',
+      refresh_token: rt,
+    }),
+  });
+  const j = await res.json();
+  if (!j.access_token) throw new Error('Token refresh failed: ' + JSON.stringify(j).slice(0, 300));
+  const updated = cfg
+    .replace(/oauth_token = "([^"]+)"/, `oauth_token = "${j.access_token}"`)
+    .replace(/refresh_token = "([^"]+)"/, `refresh_token = "${j.refresh_token}"`)
+    .replace(/expiration_time = "([^"]+)"/, `expiration_time = "${new Date(Date.now() + (j.expires_in ?? 3599) * 1000).toISOString()}"`);
+  writeFileSync(tomlPath, updated);
+  return j.access_token;
+}
+
+let activeToken = TOKEN;
+let didRefresh = false;
+
 async function api(path, { method = 'GET', body, auth, headers = {} } = {}) {
-  const h = { Authorization: `Bearer ${auth ?? TOKEN}`, ...headers };
-  if (body !== undefined && !(body instanceof FormData)) {
-    h['content-type'] = 'application/json';
-    body = JSON.stringify(body);
+  const attempt = async (authToken) => {
+    const h = { Authorization: `Bearer ${authToken}`, ...headers };
+    if (body !== undefined && !(body instanceof FormData)) {
+      h['content-type'] = 'application/json';
+      body = JSON.stringify(body);
+    }
+    const url = `https://api.cloudflare.com/client/v4${path}`;
+    const res = await fetch(url, { method, headers: h, body });
+    const text = await res.text();
+    let json = null;
+    try {
+      json = JSON.parse(text);
+    } catch {
+      /* non-json */
+    }
+    if (res.status === 401 && !didRefresh && !auth) {
+      didRefresh = true;
+      activeToken = await refreshToken();
+      console.log('  ↻ oauth token refreshed');
+      return attempt(activeToken);
+    }
+    if (!res.ok) {
+      throw new Error(`API ${method} ${path} -> ${res.status}: ${text.slice(0, 500)}`);
+    }
+    return json;
+  };
+  const result = await attempt(auth ?? activeToken);
+  if (result && typeof result === 'object' && 'result' in result && 'success' in result) {
+    return result.result;
   }
-  const url = `https://api.cloudflare.com/client/v4${path}`;
-  const res = await fetch(url, { method, headers: h, body });
-  const text = await res.text();
-  let json = null;
-  try {
-    json = JSON.parse(text);
-  } catch {
-    /* non-json */
-  }
-  if (!res.ok) {
-    throw new Error(`API ${method} ${path} -> ${res.status}: ${text.slice(0, 500)}`);
-  }
-  if (json && typeof json === 'object' && 'result' in json && 'success' in json) {
-    return json.result;
-  }
-  return json;
+  return result;
 }
 
 function walkAll(dir, base) {
@@ -156,6 +193,7 @@ async function main() {
       { name: 'DISTS', type: 'r2_bucket', bucket_name: R2_DISTS },
       { name: 'DB', type: 'd1', id: D1_ID },
       { name: 'ASSETS', type: 'assets' },
+      { name: 'EMAIL', type: 'send_email' },
       { name: 'SITE_URL', type: 'plain_text', text: 'https://pilserlabs.com' },
     ],
     compatibility_date: COMPAT_DATE,
@@ -206,6 +244,18 @@ async function main() {
     console.log('  secret set (not echoed)');
   } else {
     console.log('  PL_ADMIN_PASSWORD not set — skipping secret');
+  }
+
+  console.log('== setting AGENT_KEY secret ==');
+  const agentPass = process.env.PL_AGENT_KEY;
+  if (agentPass) {
+    await api(`/accounts/${ACCOUNT}/workers/scripts/${WORKER}/secrets`, {
+      method: 'PUT',
+      body: { name: 'AGENT_KEY', type: 'secret_text', text: agentPass },
+    });
+    console.log('  agent key secret set (not echoed)');
+  } else {
+    console.log('  PL_AGENT_KEY not set — skipping agent key');
   }
 
   console.log('== applying D1 schema ==');
